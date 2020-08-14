@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <!--TODO: Remove src stuff-->
+    <!--Photo by Tom Fisk from Pexels-->
+    <!--Photo by Felix Mittermeier from Pexels-->
+    <!--Photo by Daria Shevtsova from Pexels-->
+
+    <ImageView
+        android:id="@+id/main_IMG_backGround"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:adjustViewBounds="true" />
+
+    <LinearLayout
+        android:id="@+id/main_LAY_player1_SkillsLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="10dp"
+        android:layout_marginBottom="10dp"
+        android:orientation="horizontal"
+        android:padding="2dp">
+
+        <TextView
+            android:id="@+id/main_BTN_player1_skill1"
+            android:layout_width="100dp"
+            android:layout_height="50dp"
+            android:background="@drawable/skill_button"
+            android:gravity="center"
+            android:text="Skill1"
+            android:textColor="#000000"
+            android:textSize="25dp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/main_BTN_player1_skill2"
+            android:layout_width="100dp"
+            android:layout_height="50dp"
+            android:layout_marginLeft="5dp"
+            android:background="@drawable/skill_button"
+            android:gravity="center"
+            android:text="Skill2"
+            android:textColor="#000000"
+            android:textSize="25dp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/main_BTN_player1_skill3"
+            android:layout_width="100dp"
+            android:layout_height="50dp"
+            android:layout_marginLeft="5dp"
+            android:background="@drawable/skill_button"
+            android:gravity="center"
+            android:text="Skill3"
+            android:textColor="#000000"
+            android:textSize="25dp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/main_LAY_player2_SkillsLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="200dp"
+        android:orientation="horizontal"
+        android:padding="2dp">
+
+        <TextView
+            android:id="@+id/main_BTN_player2_skill1"
+            android:layout_width="100dp"
+            android:layout_height="50dp"
+            android:background="@drawable/skill_button"
+            android:gravity="center"
+            android:text="Skill1"
+            android:textColor="#000000"
+            android:textSize="25dp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/main_BTN_player2_skill2"
+            android:layout_width="100dp"
+            android:layout_height="50dp"
+            android:layout_marginLeft="5dp"
+            android:background="@drawable/skill_button"
+            android:gravity="center"
+            android:text="Skill2"
+            android:textColor="#000000"
+            android:textSize="25dp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/main_BTN_player2_skill3"
+            android:layout_width="100dp"
+            android:layout_height="50dp"
+            android:layout_marginLeft="5dp"
+            android:background="@drawable/skill_button"
+            android:gravity="center"
+            android:text="Skill3"
+            android:textColor="#000000"
+            android:textSize="25dp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/main_IMG_player1_picture"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_above="@id/main_LAY_player1_SkillsLayout"
+        android:layout_alignStart="@id/main_LAY_player1_SkillsLayout"
+        android:layout_marginLeft="10dp"
+        android:layout_marginBottom="15dp"
+        android:src="@drawable/player_demo_circle" />
+
+    <ImageView
+        android:id="@+id/main_IMG_player2_picture"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_above="@id/main_LAY_player2_SkillsLayout"
+        android:layout_alignEnd="@id/main_LAY_player2_SkillsLayout"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="15dp"
+        android:src="@drawable/player_demo_circle" />
+
+
+    <RelativeLayout
+        android:id="@+id/main_LAY_player1_StatsLayout"
+        android:layout_width="158dp"
+        android:layout_height="78dp"
+        android:layout_above="@id/main_LAY_player1_SkillsLayout"
+        android:layout_marginStart="34dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginBottom="32dp"
+        android:layout_toEndOf="@id/main_IMG_player1_picture"
+        android:background="@drawable/health_bar"
+        android:orientation="vertical"
+        android:padding="2dp">
+
+        <TextView
+            android:id="@+id/main_LBL_player1_Stats_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:layout_marginTop="8dp"
+            android:text="Player1"
+            android:textColor="#000000"
+            android:textStyle="bold" />
+
+        <ProgressBar
+            android:id="@+id/main_BAR_Player1_progressBar"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginLeft="40dp"
+            android:layout_marginBottom="15dp"
+            android:indeterminate="false"
+            android:max="100"
+            android:min="0"
+            android:progressTint="#E53935"
+            android:secondaryProgressTint="#3949AB" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/main_LAY_player2_StatsLayout"
+        android:layout_width="158dp"
+        android:layout_height="78dp"
+        android:layout_above="@id/main_LAY_player2_SkillsLayout"
+        android:layout_marginRight="30dp"
+        android:layout_marginBottom="32dp"
+        android:layout_toStartOf="@id/main_IMG_player2_picture"
+        android:background="@drawable/health_bar">
+
+        <TextView
+            android:id="@+id/main_LBL_player2_Stats_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="10dp"
+            android:text="Player1"
+            android:textColor="#000000"
+            android:textStyle="bold" />
+
+        <ProgressBar
+            android:id="@+id/main_BAR_Player2_progressBar"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginLeft="40dp"
+            android:layout_marginBottom="18dp"
+            android:indeterminate="false"
+            android:max="100"
+            android:min="0"
+            android:progressTint="#E53935"
+            android:secondaryProgressTint="#3949AB" />
+
+    </RelativeLayout>
+
+
+</RelativeLayout>

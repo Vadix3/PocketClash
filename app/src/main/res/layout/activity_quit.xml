@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="15dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:padding="10dp">
+
+        <TextView
+            android:id="@+id/quitDialog_LBL_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Are you sure you want to quit?"
+            android:textSize="25sp" />
+
+        <TextView
+            android:id="@+id/quitDialog_TXT_yesText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"
+            android:text="Yes"
+            android:textColor="#00E676"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/quitDialog_TXT_noText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentBottom="true"
+            android:text="No"
+            android:textColor="#FF1744"
+            android:textSize="20sp" />
+    </RelativeLayout>
+</RelativeLayout>
