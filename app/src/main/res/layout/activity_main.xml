@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main_LAY_mainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
     <!--TODO: Remove src stuff-->
     <!--Photo by Tom Fisk from Pexels-->
     <!--Photo by Felix Mittermeier from Pexels-->
@@ -29,8 +31,9 @@
             android:layout_width="100dp"
             android:layout_height="50dp"
             android:background="@drawable/skill_button"
+            android:foreground="?attr/selectableItemBackground"
             android:gravity="center"
-            android:text="Skill1"
+            android:text="Low"
             android:textColor="#000000"
             android:textSize="25dp"
             android:textStyle="bold" />
@@ -41,11 +44,13 @@
             android:layout_height="50dp"
             android:layout_marginLeft="5dp"
             android:background="@drawable/skill_button"
+            android:foreground="?attr/selectableItemBackground"
             android:gravity="center"
-            android:text="Skill2"
+            android:text="Med"
             android:textColor="#000000"
             android:textSize="25dp"
             android:textStyle="bold" />
+        />
 
         <TextView
             android:id="@+id/main_BTN_player1_skill3"
@@ -53,11 +58,13 @@
             android:layout_height="50dp"
             android:layout_marginLeft="5dp"
             android:background="@drawable/skill_button"
+            android:foreground="?attr/selectableItemBackground"
             android:gravity="center"
-            android:text="Skill3"
+            android:text="Max"
             android:textColor="#000000"
             android:textSize="25dp"
             android:textStyle="bold" />
+        />
 
     </LinearLayout>
 
@@ -77,11 +84,13 @@
             android:layout_width="100dp"
             android:layout_height="50dp"
             android:background="@drawable/skill_button"
+            android:foreground="?attr/selectableItemBackground"
             android:gravity="center"
-            android:text="Skill1"
+            android:text="Low"
             android:textColor="#000000"
             android:textSize="25dp"
             android:textStyle="bold" />
+        />
 
         <TextView
             android:id="@+id/main_BTN_player2_skill2"
@@ -89,11 +98,13 @@
             android:layout_height="50dp"
             android:layout_marginLeft="5dp"
             android:background="@drawable/skill_button"
+            android:foreground="?attr/selectableItemBackground"
             android:gravity="center"
-            android:text="Skill2"
+            android:text="Med"
             android:textColor="#000000"
             android:textSize="25dp"
             android:textStyle="bold" />
+        />
 
         <TextView
             android:id="@+id/main_BTN_player2_skill3"
@@ -101,11 +112,13 @@
             android:layout_height="50dp"
             android:layout_marginLeft="5dp"
             android:background="@drawable/skill_button"
+            android:foreground="?attr/selectableItemBackground"
             android:gravity="center"
-            android:text="Skill3"
+            android:text="Max"
             android:textColor="#000000"
             android:textSize="25dp"
             android:textStyle="bold" />
+        />
 
     </LinearLayout>
 
@@ -161,10 +174,12 @@
             android:layout_alignParentBottom="true"
             android:layout_marginLeft="40dp"
             android:layout_marginBottom="15dp"
+            android:background="@drawable/background_border"
             android:indeterminate="false"
             android:max="100"
             android:min="0"
-            android:progressTint="#E53935"
+            android:progressDrawable="@drawable/custom_progress"
+            android:progressTint="#64DD17"
             android:secondaryProgressTint="#3949AB" />
 
     </RelativeLayout>
@@ -197,10 +212,12 @@
             android:layout_alignParentBottom="true"
             android:layout_marginLeft="40dp"
             android:layout_marginBottom="18dp"
+            android:background="@drawable/background_border"
             android:indeterminate="false"
             android:max="100"
             android:min="0"
-            android:progressTint="#E53935"
+            android:progressDrawable="@drawable/custom_progress"
+            android:progressTint="#64DD17"
             android:secondaryProgressTint="#3949AB" />
 
     </RelativeLayout>

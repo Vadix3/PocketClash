@@ -1,7 +1,13 @@
 package com.example.pocketclash;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -10,11 +16,12 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDialogFragment;
 import androidx.fragment.app.DialogFragment;
 
 import org.w3c.dom.Text;
 
-public class WinActivity extends DialogFragment {
+public class WinActivity extends AppCompatDialogFragment {
     private TextView headLine;
     private TextView againButton;
     private TextView quitButton;
@@ -25,13 +32,20 @@ public class WinActivity extends DialogFragment {
         this.winner = winner;
     }
 
-    @Nullable
+    @NonNull
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.activity_gameover, container, false);
+    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+        Activity current = getActivity();
+        AlertDialog.Builder builder = new AlertDialog.Builder(current);
+        LayoutInflater inflater = current.getLayoutInflater();
+        View view = inflater.inflate(R.layout.activity_gameover, null);
+        Vibrator vb = (Vibrator) current.getSystemService(Context.VIBRATOR_SERVICE);
+        vb.vibrate(150);
+        builder.setView(view);
         initWidgets(view);
         initListeners(view);
-        return view;
+        this.setCancelable(false);
+        return builder.create();
     }
 
     /**
@@ -63,6 +77,6 @@ public class WinActivity extends DialogFragment {
         againButton = view.findViewById(R.id.gameOver_TXT_again);
         quitButton = view.findViewById(R.id.gameOver_TXT_quit);
         headLine = view.findViewById(R.id.gameOver_LBL_title);
-        headLine.setText(winner.getName()+" has won!");
+        headLine.setText(winner.getName() + " has won!");
     }
 }

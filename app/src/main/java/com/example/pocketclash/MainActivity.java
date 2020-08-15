@@ -1,20 +1,30 @@
 package com.example.pocketclash;
 
+import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.Resource;
 
 public class MainActivity extends AppCompatActivity {
     /**
      * Widgets
      */
+
+    RelativeLayout mainLayout;
 
     //ImageViews
     private ImageView backgroundImage;
@@ -52,6 +62,9 @@ public class MainActivity extends AppCompatActivity {
     private static final int LOW_DAMAGE = 10;
     private static final int MED_DAMAGE = 15;
     private static final int MAX_DAMAGE = 20;
+    private static final int MAX_HP = 100;
+
+    MediaPlayer mediaPlayer;
 
     //Enums
     private enum CurrentPlayer {PLAYER1, PLAYER2}
@@ -73,20 +86,62 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        player1 = new Player(100, "Player1");
-        player2 = new Player(100, "Player2");
+
+        player1 = new Player(MAX_HP, "Player1");
+        player2 = new Player(MAX_HP, "Player2");
 
         initWidgets();
         initListeners();
+        playMusic();
+        newGame();
 
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mediaPlayer.pause();
+    }
+
+    @Override
+    protected void onResume() {
+        mediaPlayer.start();
+        super.onResume();
+    }
+
+    @Override
+    protected void onStop() {
+        mediaPlayer.pause();
+        super.onStop();
+    }
+
+    /**
+     * A method to play backgroud music
+     */
+    private void playMusic() {
+        mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.pocket_clash_battle2);
+        mediaPlayer.setLooping(true);
+        mediaPlayer.start();
+
+    }
+
+    /**
+     * A method to start a new game
+     */
+    private void newGame() {
         selectStartingPlayer();
-
     }
 
     /**
      * A method to select the starting player
      */
     private void selectStartingPlayer() {
+
+        player1.setHealth(100);
+        player2.setHealth(100);
+        player1_health.setProgress(100);
+        player2_health.setProgress(100);
+
         switch ((int) Math.floor(Math.random() * 2) + 1) {
             case 1:
                 currentPlayer = CurrentPlayer.PLAYER1;
@@ -110,6 +165,7 @@ public class MainActivity extends AppCompatActivity {
                 player1_skill1.setBackground(getDrawable(R.drawable.skill_button));
                 player1_skill2.setBackground(getDrawable(R.drawable.skill_button));
                 player1_skill3.setBackground(getDrawable(R.drawable.skill_button));
+
 
                 player2_skill1.setClickable(false);
                 player2_skill2.setClickable(false);
@@ -155,13 +211,10 @@ public class MainActivity extends AppCompatActivity {
         player1_skill2.setBackground(getDrawable(R.drawable.unavailable_skill));
         player1_skill3.setBackground(getDrawable(R.drawable.unavailable_skill));
 
-        /**TODO: create fragment with feedback*/
         if (player1_health.getProgress() <= 0) {
             onGameOver(player2);
-            displayToast("Player 2 has won!");
         } else {
             onGameOver(player1);
-            displayToast("Player 1 has won!");
         }
     }
 
@@ -172,6 +225,7 @@ public class MainActivity extends AppCompatActivity {
      * Strong skill click (-20)
      */
     private void initListeners() {
+
         weakClick = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -216,6 +270,8 @@ public class MainActivity extends AppCompatActivity {
      * A method to initialize the widgets
      */
     private void initWidgets() {
+        mainLayout = findViewById(R.id.main_LAY_mainLayout);
+        mainLayout.setClickable(true);
         backgroundImage = findViewById(R.id.main_IMG_backGround);
         backgroundImage.setScaleType(ImageView.ScaleType.FIT_XY);
         Glide.with(backgroundImage).load(randomizeBackground()).into(backgroundImage);
@@ -276,11 +332,15 @@ public class MainActivity extends AppCompatActivity {
         if (damagedPlayer.equals(player1)) { // Damage player 1
             player1_health.setProgress(player1_health.getProgress() - damage);
             player1.setHealth(player1_health.getProgress());
+            if (player1.getHealth() <= 25)
+                player1_health.setProgressTintList(getColorStateList(R.color.colorLowHP));
             displayToast(player2.getName() + " deals " + damage + " damage!");
             holdPlayer(CurrentPlayer.PLAYER1);
         } else { // Damage player 2
             player2_health.setProgress(player2_health.getProgress() - damage);
             player2.setHealth(player2_health.getProgress());
+            if (player2.getHealth() <= 25)
+                player2_health.setProgressTintList(getColorStateList(R.color.colorLowHP));
             displayToast(player1.getName() + " deals " + damage + " damage!");
             holdPlayer(CurrentPlayer.PLAYER2);
         }
@@ -311,7 +371,11 @@ public class MainActivity extends AppCompatActivity {
         exitApp();
     }
 
-    public void onGameOver(Player winner){
+
+    /**
+     * A method to display the game over dialog
+     */
+    public void onGameOver(Player winner) {
         WinActivity win = new WinActivity(winner);
         win.show(getSupportFragmentManager(), "WinActivity");
     }

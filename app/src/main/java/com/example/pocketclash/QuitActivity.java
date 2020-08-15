@@ -21,6 +21,7 @@ public class QuitActivity extends DialogFragment {
         View view = inflater.inflate(R.layout.activity_quit, container, false);
         initWidgets(view);
         initListeners();
+        this.setCancelable(false);
         return view;
     }
 
