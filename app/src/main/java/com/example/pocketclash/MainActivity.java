@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
@@ -63,9 +64,11 @@ public class MainActivity extends AppCompatActivity {
      * Variables
      */
     private static final int LOW_DAMAGE = 10;
-    private static final int MED_DAMAGE = 15;
-    private static final int MAX_DAMAGE = 20;
+    private static final int MID_DAMAGE = 15;
+    private static final int HIGH_DAMAGE = 20;
     private static final int MAX_HP = 100;
+    private static final int VS_AI = 1;
+    private static final int SOLO = 0;
     private static final String PLAYER2 = "player2";
     private static final String PLAYER1 = "player1";
     private int gameMode;
@@ -77,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
     private Player player2;
 
     private boolean isVolumeOn = false;
-    private boolean humanTurn = false;
+    private boolean humanTurn;
 
     /**
      * TODO: 1. Add on click animations
@@ -111,13 +114,12 @@ public class MainActivity extends AppCompatActivity {
      * 2 = online (in future)
      */
     private void getGameMode() {
-        Bundle extras = getIntent().getExtras();
-        gameMode = extras.getInt("GameType");
+        gameMode = getIntent().getExtras().getInt("GameType");
         switch (gameMode) {
-            case 0:
+            case SOLO:
                 newSoloGame();
                 break;
-            case 1:
+            case VS_AI:
                 newVsAIGame();
                 break;
         }
@@ -154,7 +156,8 @@ public class MainActivity extends AppCompatActivity {
      * A method to start a new solo game
      */
     private void newSoloGame() {
-        selectStartingPlayer();
+        holdPlayer(PLAYER2);
+        releasePlayer(PLAYER1);
     }
 
     /**
@@ -163,12 +166,11 @@ public class MainActivity extends AppCompatActivity {
     private void newVsAIGame() {
         player2SkillsLayout = findViewById(R.id.main_LAY_player2_SkillsLayout);
         player2SkillsLayout.setVisibility(View.INVISIBLE);
+
         selectStartingPlayer();
         if (player1_skill1.isContextClickable() == false) { // AI goes first
-            humanTurn = false;
             playAI();
         } else {
-            humanTurn = true;
             playHuman();
         }
     }
@@ -177,14 +179,26 @@ public class MainActivity extends AppCompatActivity {
      * A method to make human move
      */
     private void playHuman() {
+
+
         displayToast("Human made a move!");
+        playAI();
     }
 
     /**
      * A method to make AI move
      */
     private void playAI() {
+//        try {
+//            Thread.sleep(3000); // 3 Seconds
+//        } catch (InterruptedException e) {
+//            Log.d("pttt", e.toString());
+//        }
+
+        /** Insert AI move here*/
+
         displayToast("AI made a move!");
+        playHuman();
     }
 
     /**
@@ -197,29 +211,25 @@ public class MainActivity extends AppCompatActivity {
         player2_health.setProgress(100);
 
         switch ((int) Math.floor(Math.random() * 2) + 1) {
-            case 1:
-                if (gameMode == 1) {
-                    playHuman();
-                } else {
-                    holdPlayer(PLAYER2);
-                    releasePlayer(PLAYER1);
-                }
+            case 1: // Human goes first
+                holdPlayer(PLAYER2);
+                releasePlayer(PLAYER1);
                 break;
             case 2:
-                if (gameMode == 1) {
-                    playAI();
+                if (gameMode == VS_AI) {
+                    holdPlayer(PLAYER1);
+                    break;
                 } else {
                     holdPlayer(PLAYER1);
                     releasePlayer(PLAYER2);
+                    break;
                 }
-                break;
         }
     }
 
     /**
      * A method to release current player
      */
-
     private void releasePlayer(String playerName) {
         switch (playerName) {
             case PLAYER1: // Releasing player 1
@@ -315,9 +325,9 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 humanTurn = true;
                 if (view == player1_skill2) {
-                    dealDamageTo(player2, MED_DAMAGE);
+                    dealDamageTo(player2, MID_DAMAGE);
                 } else {
-                    dealDamageTo(player1, MED_DAMAGE);
+                    dealDamageTo(player1, MID_DAMAGE);
                 }
             }
         };
@@ -327,9 +337,9 @@ public class MainActivity extends AppCompatActivity {
                 humanTurn = true;
 
                 if (view == player1_skill3) {
-                    dealDamageTo(player2, MAX_DAMAGE);
+                    dealDamageTo(player2, HIGH_DAMAGE);
                 } else {
-                    dealDamageTo(player1, MAX_DAMAGE);
+                    dealDamageTo(player1, HIGH_DAMAGE);
                 }
             }
         };
@@ -428,31 +438,57 @@ public class MainActivity extends AppCompatActivity {
      * A function to deal given damage to given player
      */
     private void dealDamageTo(final Player damagedPlayer, final int damage) {
-        /** A thread to make a move*/
+        /** TODO: 1. Use thread
+         *        2. Deal adjusted damage
+         */
+        if (damagedPlayer.equals(player1)) { // Damage player 1 (AI MOVE)
 
-        if (damagedPlayer.equals(player1)) { // Damage player 1
-            player1_health.setProgress(player1_health.getProgress() - damage);
-            player1.setHealth(player1_health.getProgress());
-            if (player1.getHealth() <= 25)
-                player1_health.setProgressTintList(getColorStateList(R.color.colorLowHP));
-            player2.setNumOfTurns(player2.getNumOfTurns() + 1);
-            displayToast(player2.getName() + " deals " + damage + " damage!");
-
+            updateStats(player1, damage);
             holdPlayer(PLAYER2);
             releasePlayer(PLAYER1);
+
         } else { // Damage player 2
-            player2_health.setProgress(player2_health.getProgress() - damage);
-            player2.setHealth(player2_health.getProgress());
-            if (player2.getHealth() <= 25)
-                player2_health.setProgressTintList(getColorStateList(R.color.colorLowHP));
-            player1.setNumOfTurns(player1.getNumOfTurns() + 1);
-            displayToast(player1.getName() + " deals " + damage + " damage!");
+
+            updateStats(player2, damage);
             holdPlayer(PLAYER1);
             releasePlayer(PLAYER2);
-            humanTurn = false;
-            playAI();
+
         }
+        checkIfSwitchProgressColor();
         checkIfGameOver();
+    }
+
+    /**
+     * A method to update progress Hp and points.
+     * Display toast with damage.
+     */
+    private void updateStats(Player player, int damage) {
+        switch (player.getName()) {
+            case PLAYER1:
+                player1_health.setProgress(player1_health.getProgress() - damage);
+                player1.setHealth(player1_health.getProgress());
+                player2.setNumOfTurns(player2.getNumOfTurns() + 1);
+
+                displayToast(player2.getName() + " deals " + damage + " damage!");
+                break;
+            case PLAYER2:
+                player2_health.setProgress(player2_health.getProgress() - damage);
+                player2.setHealth(player2_health.getProgress());
+                player1.setNumOfTurns(player1.getNumOfTurns() + 1);
+
+                displayToast(player1.getName() + " deals " + damage + " damage!");
+                break;
+        }
+    }
+
+    /**
+     * A method to switch the progress bar color if needed
+     */
+    private void checkIfSwitchProgressColor() {
+        if (player1.getHealth() <= 25)
+            player1_health.setProgressTintList(getColorStateList(R.color.colorLowHP));
+        if (player2.getHealth() <= 25)
+            player2_health.setProgressTintList(getColorStateList(R.color.colorLowHP));
     }
 
 

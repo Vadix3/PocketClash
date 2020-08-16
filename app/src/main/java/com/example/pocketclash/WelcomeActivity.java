@@ -13,6 +13,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
@@ -58,11 +59,13 @@ public class WelcomeActivity extends AppCompatActivity {
         vsaiStartButton.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-                vb.vibrate(5);
-                Intent intent = new Intent(WelcomeActivity.this, MainActivity.class);
-                intent.putExtra("GameType", 1);
-                startActivity(intent);
-                finish();
+//                vb.vibrate(5);
+//                Intent intent = new Intent(WelcomeActivity.this, MainActivity.class);
+//                intent.putExtra("GameType", 1);
+//                startActivity(intent);
+//                finish();
+//                return false;
+                Toast.makeText(WelcomeActivity.this, "Under Construction!", Toast.LENGTH_SHORT).show();
                 return false;
             }
         });
@@ -72,7 +75,7 @@ public class WelcomeActivity extends AppCompatActivity {
      * A method to initialize the widgets
      */
     private void initWidgets() {
-        relativeLayout=findViewById(R.id.welcome_LAY_mainLayout);
+        relativeLayout = findViewById(R.id.welcome_LAY_mainLayout);
         title = findViewById(R.id.welcome_IMG_title);
         vsaiStartButton = findViewById(R.id.welcome_IMG_startAi);
         soloStartButton = findViewById(R.id.welcome_IMG_startSolo);
