@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!--TODO: Remove src stuff-->
+    <!--TODO: Remove src stuff
+        TODO: Paint skill images (orange, green?)-->
     <!--Photo by Tom Fisk from Pexels-->
     <!--Photo by Felix Mittermeier from Pexels-->
     <!--Photo by Daria Shevtsova from Pexels-->
@@ -14,6 +15,13 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:adjustViewBounds="true" />
+
+    <ImageView
+        android:id="@+id/welcome_IMG_menu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:src="@drawable/ic_baseline_volume_off_24" />
 
     <LinearLayout
         android:id="@+id/main_LAY_player1_SkillsLayout"
@@ -33,7 +41,7 @@
             android:background="@drawable/skill_button"
             android:foreground="?attr/selectableItemBackground"
             android:gravity="center"
-            android:text="Low"
+            android:text="Light"
             android:textColor="#000000"
             android:textSize="25dp"
             android:textStyle="bold" />
@@ -46,7 +54,7 @@
             android:background="@drawable/skill_button"
             android:foreground="?attr/selectableItemBackground"
             android:gravity="center"
-            android:text="Med"
+            android:text="Heavy"
             android:textColor="#000000"
             android:textSize="25dp"
             android:textStyle="bold" />
@@ -60,7 +68,7 @@
             android:background="@drawable/skill_button"
             android:foreground="?attr/selectableItemBackground"
             android:gravity="center"
-            android:text="Max"
+            android:text="Heal"
             android:textColor="#000000"
             android:textSize="25dp"
             android:textStyle="bold" />
@@ -86,7 +94,7 @@
             android:background="@drawable/skill_button"
             android:foreground="?attr/selectableItemBackground"
             android:gravity="center"
-            android:text="Low"
+            android:text="Light"
             android:textColor="#000000"
             android:textSize="25dp"
             android:textStyle="bold" />
@@ -100,7 +108,7 @@
             android:background="@drawable/skill_button"
             android:foreground="?attr/selectableItemBackground"
             android:gravity="center"
-            android:text="Med"
+            android:text="Heavy"
             android:textColor="#000000"
             android:textSize="25dp"
             android:textStyle="bold" />
@@ -114,7 +122,7 @@
             android:background="@drawable/skill_button"
             android:foreground="?attr/selectableItemBackground"
             android:gravity="center"
-            android:text="Max"
+            android:text="Heal"
             android:textColor="#000000"
             android:textSize="25dp"
             android:textStyle="bold" />

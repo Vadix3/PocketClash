@@ -2,37 +2,48 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/gameOver_LAY_mainLayout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="15dp">
+    android:layout_height="match_parent">
 
-    <RelativeLayout
+    <TextView
+        android:id="@+id/gameOver_LBL_title"
         android:layout_width="match_parent"
-        android:layout_height="120dp"
-        android:padding="10dp">
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="80dp"
+        android:layout_centerVertical="true"
+        android:gravity="center"
+        android:textSize="25sp"
+        android:textStyle="bold"
+        android:textColor="#000000"
+        android:fontFamily="@font/showg"
+        android:text="Player 1 has win in 5 turns!"
+        />
 
-        <TextView
-            android:id="@+id/gameOver_LBL_title"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:textSize="25sp" />
+    <TextView
+        android:id="@+id/gameOver_TXT_again"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginRight="50dp"
+        android:layout_marginBottom="30dp"
+        android:fontFamily="@font/showg"
+        android:text="Again"
+        android:textColor="#00C853"
+        android:textSize="30sp"
+        android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/gameOver_TXT_again"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentBottom="true"
-            android:text="Again"
-            android:textSize="20sp" />
-
-        <TextView
-            android:id="@+id/gameOver_TXT_quit"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentBottom="true"
-            android:text="Quit"
-            android:textSize="20sp" />
-    </RelativeLayout>
+    <TextView
+        android:id="@+id/gameOver_TXT_quit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="50dp"
+        android:layout_marginBottom="30dp"
+        android:fontFamily="@font/showg"
+        android:text="Quit"
+        android:textColor="#D50000"
+        android:textSize="30sp"
+        android:textStyle="bold" />
 </RelativeLayout>
