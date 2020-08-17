@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Vibrator;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -53,8 +54,15 @@ public class GameOverActivity extends Dialog implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_gameover);
-        Vibrator vb = (Vibrator) currentActivity.getSystemService(Context.VIBRATOR_SERVICE);
-        vb.vibrate(150);
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Vibrator vb = (Vibrator) currentActivity.getSystemService(Context.VIBRATOR_SERVICE);
+                vb.vibrate(400);
+            }
+        }, 200);
+
         initWidgets();
         this.setCancelable(false);
 

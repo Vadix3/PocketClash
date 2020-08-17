@@ -59,13 +59,11 @@ public class WelcomeActivity extends AppCompatActivity {
         vsaiStartButton.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-//                vb.vibrate(5);
-//                Intent intent = new Intent(WelcomeActivity.this, MainActivity.class);
-//                intent.putExtra("GameType", 1);
-//                startActivity(intent);
-//                finish();
-//                return false;
-                Toast.makeText(WelcomeActivity.this, "Under Construction!", Toast.LENGTH_SHORT).show();
+                vb.vibrate(5);
+                Intent intent = new Intent(WelcomeActivity.this, MainActivity.class);
+                intent.putExtra("GameType", 1);
+                startActivity(intent);
+                finish();
                 return false;
             }
         });

@@ -5,7 +5,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.util.Log;
+import android.os.Handler;
 import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
@@ -19,6 +19,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
     /**
@@ -63,15 +65,16 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Variables
      */
-    private static final int LOW_DAMAGE = 10;
-    private static final int MID_DAMAGE = 15;
-    private static final int HIGH_DAMAGE = 20;
+    private static final int LOW_DAMAGE = 0;
+    private static final int HIGH_DAMAGE = 1;
+    private static final int HEAL = 2;
     private static final int MAX_HP = 100;
     private static final int VS_AI = 1;
     private static final int SOLO = 0;
-    private static final String PLAYER2 = "player2";
-    private static final String PLAYER1 = "player1";
+    private static final String PLAYER2 = "Player2";
+    private static final String PLAYER1 = "Player1";
     private int gameMode;
+    private int startingPlayer;
 
     MediaPlayer mediaPlayer;
 
@@ -79,8 +82,11 @@ public class MainActivity extends AppCompatActivity {
     private Player player1;
     private Player player2;
 
+    //Skills
+    private ArrayList<Skill> allSkills;
+    //Booleans
+    private boolean isGameOver = false;
     private boolean isVolumeOn = false;
-    private boolean humanTurn;
 
     /**
      * TODO: 1. Add on click animations
@@ -93,18 +99,88 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        player1 = new Player(MAX_HP, PLAYER1);
-        player2 = new Player(MAX_HP, PLAYER2);
-
+        initAllSkills();
+        initPlayers();
         initWidgets();
         initListeners();
-        if (isVolumeOn)
+
+        if (isVolumeOn) //TODO: Maybe do it on thread?
             playMusic();
 
         getGameMode();
 
 
+    }
+
+    /**
+     * A method to initialize the total skills array (Database of skills)
+     * TODO: add inflatable skill details?
+     * Name,Damage,Points,Type
+     */
+    private void initAllSkills() {
+        allSkills = new ArrayList<Skill>();
+        // Light skills
+        Skill punch = new Skill("Punch", 10, 7, 0);
+        Skill slap = new Skill("Slap", 10, 7, 0);
+        Skill spank = new Skill("Spank", 10, 7, 0);
+
+        // Heavy skills
+        Skill headButt = new Skill("Cut", 20, 5, 1);
+        Skill kick = new Skill("Kick", 20, 5, 1);
+        Skill charge = new Skill("Charge", 20, 5, 1);
+
+        // Heal skills
+        Skill meditate = new Skill("Heal", 10, 3, 2);
+        Skill drain = new Skill("Drain", 10, 3, 2);
+        Skill potion = new Skill("Potion", 10, 3, 2);
+
+        allSkills.add(punch);
+        allSkills.add(slap);
+        allSkills.add(spank);
+        allSkills.add(headButt);
+        allSkills.add(kick);
+        allSkills.add(charge);
+        allSkills.add(meditate);
+        allSkills.add(drain);
+        allSkills.add(potion);
+    }
+
+    /**
+     * A method to init players (HP,Name,Skills)
+     */
+    private void initPlayers() {
+        player1 = new Player(MAX_HP, PLAYER1);
+        player2 = new Player(MAX_HP, PLAYER2);
+        getPlayerSkills();
+    }
+
+
+    /**
+     * Randomize player skills
+     */
+    private void getPlayerSkills() {
+
+        Skill[] player1Skills = new Skill[3];
+        Skill[] player2Skills = new Skill[3];
+
+        player1Skills[0] = allSkills.get(randomIntFromInterval(0, 2));
+        player2Skills[0] = allSkills.get(randomIntFromInterval(0, 2));
+
+        player1Skills[1] = allSkills.get(randomIntFromInterval(3, 5));
+        player2Skills[1] = allSkills.get(randomIntFromInterval(3, 5));
+
+        player1Skills[2] = allSkills.get(randomIntFromInterval(6, 8));
+        player2Skills[2] = allSkills.get(randomIntFromInterval(6, 8));
+
+        player1.setSkills(player1Skills);
+        player2.setSkills(player2Skills);
+    }
+
+    /**
+     * Get random numbers from given interval
+     */
+    private int randomIntFromInterval(int min, int max) { // min and max included
+        return (int) Math.floor(Math.random() * (max - min + 1) + min);
     }
 
     /**
@@ -168,37 +244,23 @@ public class MainActivity extends AppCompatActivity {
         player2SkillsLayout.setVisibility(View.INVISIBLE);
 
         selectStartingPlayer();
-        if (player1_skill1.isContextClickable() == false) { // AI goes first
+
+        if (startingPlayer == 2) { // AI goes first
             playAI();
-        } else {
-            playHuman();
         }
     }
 
     /**
-     * A method to make human move
-     */
-    private void playHuman() {
-
-
-        displayToast("Human made a move!");
-        playAI();
-    }
-
-    /**
      * A method to make AI move
+     * TODO: For part 2, randomize skills here
      */
     private void playAI() {
-//        try {
-//            Thread.sleep(3000); // 3 Seconds
-//        } catch (InterruptedException e) {
-//            Log.d("pttt", e.toString());
-//        }
 
         /** Insert AI move here*/
 
-        displayToast("AI made a move!");
-        playHuman();
+        dealDamageTo(player1, player2.lowSkill());
+
+        displayToast("AI deals 10 damage!");
     }
 
     /**
@@ -214,8 +276,10 @@ public class MainActivity extends AppCompatActivity {
             case 1: // Human goes first
                 holdPlayer(PLAYER2);
                 releasePlayer(PLAYER1);
+                startingPlayer = 1;
                 break;
             case 2:
+                startingPlayer = 2;
                 if (gameMode == VS_AI) {
                     holdPlayer(PLAYER1);
                     break;
@@ -234,16 +298,16 @@ public class MainActivity extends AppCompatActivity {
         switch (playerName) {
             case PLAYER1: // Releasing player 1
                 player1_skill1.setBackground(getDrawable(R.drawable.skill_button));
-                player1_skill2.setBackground(getDrawable(R.drawable.skill_button));
-                player1_skill3.setBackground(getDrawable(R.drawable.skill_button));
+                player1_skill2.setBackground(getDrawable(R.drawable.heavy_attack_button));
+                player1_skill3.setBackground(getDrawable(R.drawable.heal_button));
                 player1_skill1.setClickable(true);
                 player1_skill2.setClickable(true);
                 player1_skill3.setClickable(true);
                 break;
             case PLAYER2: // Releasing plyer2
                 player2_skill1.setBackground(getDrawable(R.drawable.skill_button));
-                player2_skill2.setBackground(getDrawable(R.drawable.skill_button));
-                player2_skill3.setBackground(getDrawable(R.drawable.skill_button));
+                player2_skill2.setBackground(getDrawable(R.drawable.heavy_attack_button));
+                player2_skill3.setBackground(getDrawable(R.drawable.heal_button));
                 player2_skill1.setClickable(true);
                 player2_skill2.setClickable(true);
                 player2_skill3.setClickable(true);
@@ -309,37 +373,41 @@ public class MainActivity extends AppCompatActivity {
      */
     private void initListeners() {
 
+        /** Weak skill*/
         weakClick = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                humanTurn = true;
                 if (view == player1_skill1) {
-                    dealDamageTo(player2, LOW_DAMAGE);
+
+                    dealDamageTo(player2, player1.lowSkill());
+
                 } else {
-                    dealDamageTo(player1, LOW_DAMAGE);
+                    dealDamageTo(player1, player2.lowSkill());
                 }
             }
         };
+        /** Strong skill*/
         mediumClick = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                humanTurn = true;
                 if (view == player1_skill2) {
-                    dealDamageTo(player2, MID_DAMAGE);
+                    dealDamageTo(player2, player1.highSkill());
+
                 } else {
-                    dealDamageTo(player1, MID_DAMAGE);
+                    dealDamageTo(player1, player2.highSkill());
                 }
             }
         };
+        /** Heal*/
         strongClick = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                humanTurn = true;
-
                 if (view == player1_skill3) {
-                    dealDamageTo(player2, HIGH_DAMAGE);
+                    //TODO:Heal method here?
+                    dealDamageTo(player2, player2.heal());
+
                 } else {
-                    dealDamageTo(player1, HIGH_DAMAGE);
+                    dealDamageTo(player1, player1.heal());
                 }
             }
         };
@@ -369,6 +437,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * A method to heal given player
+     */
+    private void healPlayer(Player player, Skill heal) {
+        switch (player.getName()) {
+            case PLAYER1:
+                player1_health.setProgress(player1_health.getProgress() + heal.getDamage());
+                player.setHealth(player1.getHealth() + heal.getDamage());
+                break;
+            case PLAYER2:
+                player2_health.setProgress(player2_health.getProgress() + heal.getDamage());
+                player.setHealth(player2.getHealth() + heal.getDamage());
+                break;
+        }
+        checkIfSwitchProgressColor();
+    }
+
+    /**
      * A method to initialize the widgets
      */
     private void initWidgets() {
@@ -382,11 +467,18 @@ public class MainActivity extends AppCompatActivity {
         volumeButton = findViewById(R.id.welcome_IMG_menu);
 
         player1_skill1 = findViewById(R.id.main_BTN_player1_skill1);
+        player1_skill1.setText(player1.lowSkill().getName());
         player1_skill2 = findViewById(R.id.main_BTN_player1_skill2);
+        player1_skill2.setText(player1.highSkill().getName());
         player1_skill3 = findViewById(R.id.main_BTN_player1_skill3);
+        player1_skill3.setText(player1.heal().getName());
         player2_skill1 = findViewById(R.id.main_BTN_player2_skill1);
+        player2_skill1.setText(player2.lowSkill().getName());
         player2_skill2 = findViewById(R.id.main_BTN_player2_skill2);
+        player2_skill2.setText(player2.highSkill().getName());
         player2_skill3 = findViewById(R.id.main_BTN_player2_skill3);
+        player2_skill3.setText(player2.heal().getName());
+
 
         player1_name = findViewById(R.id.main_LBL_player1_Stats_name);
         player2_name = findViewById(R.id.main_LBL_player2_Stats_name);
@@ -430,6 +522,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void checkIfGameOver() {
         if (player1.getHealth() <= 0 || player2.getHealth() <= 0) {
+            isGameOver = true;
             gameOver();
         }
     }
@@ -437,21 +530,24 @@ public class MainActivity extends AppCompatActivity {
     /**
      * A function to deal given damage to given player
      */
-    private void dealDamageTo(final Player damagedPlayer, final int damage) {
+    private void dealDamageTo(final Player damagedPlayer, Skill currentSkill) {
         /** TODO: 1. Use thread
          *        2. Deal adjusted damage
          */
         if (damagedPlayer.equals(player1)) { // Damage player 1 (AI MOVE)
-
-            updateStats(player1, damage);
+            updateStats(player1, currentSkill.getDamage(), LOW_DAMAGE);
             holdPlayer(PLAYER2);
             releasePlayer(PLAYER1);
 
         } else { // Damage player 2
-
-            updateStats(player2, damage);
+            updateStats(player2, currentSkill.getDamage(), LOW_DAMAGE);
             holdPlayer(PLAYER1);
             releasePlayer(PLAYER2);
+            if (gameMode == VS_AI) { // Wait a bit and wait for AI if game is not over
+                checkIfGameOver();
+                if (!isGameOver)
+                    holdGame();
+            }
 
         }
         checkIfSwitchProgressColor();
@@ -459,23 +555,34 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * A method to hold the game to simulate thinking
+     */
+    private void holdGame() {
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                playAI();
+            }
+        }, 2000);
+    }
+
+    /**
      * A method to update progress Hp and points.
      * Display toast with damage.
      */
-    private void updateStats(Player player, int damage) {
+    private void updateStats(Player player, int damage, int updateType) {
         switch (player.getName()) {
             case PLAYER1:
                 player1_health.setProgress(player1_health.getProgress() - damage);
                 player1.setHealth(player1_health.getProgress());
                 player2.setNumOfTurns(player2.getNumOfTurns() + 1);
-
                 displayToast(player2.getName() + " deals " + damage + " damage!");
                 break;
             case PLAYER2:
                 player2_health.setProgress(player2_health.getProgress() - damage);
                 player2.setHealth(player2_health.getProgress());
                 player1.setNumOfTurns(player1.getNumOfTurns() + 1);
-
                 displayToast(player1.getName() + " deals " + damage + " damage!");
                 break;
         }
@@ -489,6 +596,11 @@ public class MainActivity extends AppCompatActivity {
             player1_health.setProgressTintList(getColorStateList(R.color.colorLowHP));
         if (player2.getHealth() <= 25)
             player2_health.setProgressTintList(getColorStateList(R.color.colorLowHP));
+        if (player1.getHealth() > 25)
+            player1_health.setProgressTintList(getColorStateList(R.color.colorHighHP));
+        if (player2.getHealth() > 25)
+            player2_health.setProgressTintList(getColorStateList(R.color.colorHighHP));
+
     }
 
 

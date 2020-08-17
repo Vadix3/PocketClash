@@ -1,11 +1,9 @@
 package com.example.pocketclash;
 
-import android.widget.ProgressBar;
-
 public class Player {
     private int health = 0;
-    private String Name = "";
-
+    private String name = "";
+    private Skill[] skills = null;
 
     //More properties
     private int numOfTurns = 0;
@@ -16,7 +14,15 @@ public class Player {
 
     public Player(int health, String name) {
         this.health = health;
-        Name = name;
+        this.name = name;
+    }
+
+    public void setSkills(Skill[] skills) {
+        this.skills = skills;
+    }
+
+    public Skill[] getSkills() {
+        return skills;
     }
 
     public int getNumOfTurns() {
@@ -32,14 +38,26 @@ public class Player {
     }
 
     public String getName() {
-        return Name;
+        return name;
     }
 
     public void setHealth(int health) {
         this.health = health;
     }
 
+    public Skill lowSkill() {
+        return this.skills[0];
+    }
+
+    public Skill highSkill() {
+        return this.skills[1];
+    }
+
+    public Skill heal() {
+        return this.skills[2];
+    }
+
     public void setName(String name) {
-        Name = name;
+        this.name = name;
     }
 }
