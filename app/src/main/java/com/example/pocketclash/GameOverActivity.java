@@ -1,21 +1,15 @@
 package com.example.pocketclash;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
-import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -27,12 +21,11 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 
-import org.w3c.dom.Text;
-
 public class GameOverActivity extends Dialog implements View.OnClickListener {
     private TextView headLine;
     private TextView againButton;
     private TextView quitButton;
+    private TextView menuButton;
     private Activity currentActivity;
     RelativeLayout background;
     private Player winner;
@@ -41,12 +34,13 @@ public class GameOverActivity extends Dialog implements View.OnClickListener {
     /**
      * GameMode 0 = solo
      * GameMode 1 = vsAI
+     * GameMode 2 = Auto
      */
     public GameOverActivity(Activity activity, Player winner, int gameMode) {
         super(activity);
         this.currentActivity = activity;
         this.winner = winner;
-        this.gameMode=gameMode;
+        this.gameMode = gameMode;
     }
 
     @Override
@@ -65,7 +59,6 @@ public class GameOverActivity extends Dialog implements View.OnClickListener {
 
         initWidgets();
         this.setCancelable(false);
-
     }
 
     /**
@@ -76,8 +69,14 @@ public class GameOverActivity extends Dialog implements View.OnClickListener {
         againButton.setOnClickListener(this);
         quitButton = findViewById(R.id.gameOver_TXT_quit);
         quitButton.setOnClickListener(this);
+        menuButton = findViewById(R.id.gameOver_TXT_menu);
+        menuButton.setOnClickListener(this);
         headLine = findViewById(R.id.gameOver_LBL_title);
-        headLine.setText(winner.getName() + " has won in " + winner.getNumOfTurns() + " turns!");
+        if (gameMode == 1 && winner.getName().equals("Player2")) { // AI has won
+            headLine.setText("Player 2 has won!");
+        } else {
+            headLine.setText(winner.getName() + " has won in " + winner.getNumOfTurns() + " turns!");
+        }
         background = findViewById(R.id.gameOver_LAY_mainLayout);
         Glide.with(background).load(R.drawable.game_over_dialog).into(new CustomTarget<Drawable>() {
             @Override
@@ -97,15 +96,20 @@ public class GameOverActivity extends Dialog implements View.OnClickListener {
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.gameOver_TXT_again:
-                Intent intent = new Intent(view.getContext(), MainActivity.class);
-                intent.putExtra("GameType",gameMode);
+            case R.id.gameOver_TXT_menu:
+                //TODO: Exiting not good?
+                Intent intent = new Intent(view.getContext(), WelcomeActivity.class);
                 currentActivity.startActivity(intent);
                 currentActivity.finish();
                 break;
             case R.id.gameOver_TXT_quit:
                 System.exit(0);
                 break;
+            case R.id.gameOver_TXT_again:
+                Intent againIntent = new Intent(view.getContext(), MainActivity.class);
+                againIntent.putExtra("GameType", gameMode);
+                currentActivity.startActivity(againIntent);
+                currentActivity.finish();
         }
     }
 

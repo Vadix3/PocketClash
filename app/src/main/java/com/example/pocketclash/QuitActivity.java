@@ -3,6 +3,7 @@ package com.example.pocketclash;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.media.Image;
 import android.os.Bundle;
@@ -29,6 +30,7 @@ public class QuitActivity extends Dialog implements View.OnClickListener {
 
     private TextView yesButton;
     private TextView noButton;
+    private TextView menuButton;
     private ImageView background;
     private RelativeLayout mainLayout;
 
@@ -58,6 +60,8 @@ public class QuitActivity extends Dialog implements View.OnClickListener {
         yesButton.setOnClickListener(this);
         noButton = findViewById(R.id.quitDialog_TXT_noText);
         noButton.setOnClickListener(this);
+        menuButton = findViewById(R.id.quitDialog_TXT_menuText);
+        menuButton.setOnClickListener(this);
         background = findViewById(R.id.quitDialog_IMG_background);
         Glide.with(background).load(R.drawable.dialog_window).into(new CustomTarget<Drawable>() {
             @Override
@@ -85,6 +89,10 @@ public class QuitActivity extends Dialog implements View.OnClickListener {
             case R.id.quitDialog_TXT_noText:
                 dismiss();
                 break;
+            case R.id.quitDialog_TXT_menuText:
+                Intent intent = new Intent(view.getContext(), WelcomeActivity.class);
+                myActivity.startActivity(intent);
+                myActivity.finish();
         }
     }
 }

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mode_LAY_mainLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="5dp">
+
+    <ImageView
+        android:id="@+id/mode_IMG_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <ImageView
+        android:id="@+id/mode_IMG_solo"
+        android:layout_width="226dp"
+        android:layout_height="80dp"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="15dp"
+        android:foreground="?attr/selectableItemBackground"
+        android:src="@drawable/solo_start_button" />
+
+    <ImageView
+        android:id="@+id/mode_IMG_vsAI"
+        android:layout_width="226dp"
+        android:layout_height="80dp"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="15dp"
+        android:layout_toRightOf="@id/mode_IMG_solo"
+        android:foreground="?attr/selectableItemBackground"
+        android:src="@drawable/vsai_start_button" />
+
+    <ImageView
+        android:id="@+id/mode_IMG_auto"
+        android:layout_width="226dp"
+        android:layout_height="80dp"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="15dp"
+        android:layout_toRightOf="@+id/mode_IMG_vsAI"
+        android:foreground="?attr/selectableItemBackground"
+        android:src="@drawable/auto_button" />
+
+
+</RelativeLayout>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/optionsMenu_statistics"
+        android:title="Show Location" />
+    <item
+        android:id="@+id/optionsMenu_about"
+        android:title="Remove Entry" />
+
+</menu>

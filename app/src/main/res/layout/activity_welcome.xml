@@ -28,7 +28,7 @@
         android:layout_marginTop="5dp">
 
         <ImageView
-            android:id="@+id/welcome_IMG_startSolo"
+            android:id="@+id/welcome_IMG_start"
             android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:layout_below="@id/welcome_IMG_title"
@@ -38,7 +38,7 @@
             android:layout_marginRight="5dp"/>
 
         <ImageView
-            android:id="@+id/welcome_IMG_startAi"
+            android:id="@+id/welcome_IMG_top10"
             android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:layout_below="@id/welcome_IMG_title"

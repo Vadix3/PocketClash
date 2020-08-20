@@ -4,31 +4,50 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Vibrator;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.io.Serializable;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Objects;
+
+/**
+ * TODO: add quit button
+ */
 public class WelcomeActivity extends AppCompatActivity {
 
     /**
      * Widgets
      */
     ImageView title;
-    ImageView soloStartButton;
-    ImageView vsaiStartButton;
+    ImageView startButton;
+    ImageView top10Button;
     RelativeLayout relativeLayout;
     Vibrator vb;
+
+
+    MySP mySP;
+    ArrayList<Score> top10Scores;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,34 +55,29 @@ public class WelcomeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_welcome);
         initWidgets();
         initListeners();
-
-
     }
 
     /**
      * Gametype 0 = solo
      * Gametype 1 = vs AI
      */
+    @SuppressLint("ClickableViewAccessibility")
     private void initListeners() {
-        soloStartButton.setOnTouchListener(new View.OnTouchListener() {
+
+        startButton.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-                vb.vibrate(5);
-                Intent intent = new Intent(WelcomeActivity.this, MainActivity.class);
-                intent.putExtra("GameType", 0);
-                startActivity(intent);
-                finish();
+                GameModeActivity dialog = new GameModeActivity(WelcomeActivity.this);
+                createDialogFragment(dialog);
+                Objects.requireNonNull(dialog.getWindow()).setDimAmount(0.975f);
                 return false;
             }
         });
-        vsaiStartButton.setOnTouchListener(new View.OnTouchListener() {
+        top10Button.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-                vb.vibrate(5);
-                Intent intent = new Intent(WelcomeActivity.this, MainActivity.class);
-                intent.putExtra("GameType", 1);
+                Intent intent = new Intent(WelcomeActivity.this, TopTenActivity.class);
                 startActivity(intent);
-                finish();
                 return false;
             }
         });
@@ -75,12 +89,12 @@ public class WelcomeActivity extends AppCompatActivity {
     private void initWidgets() {
         relativeLayout = findViewById(R.id.welcome_LAY_mainLayout);
         title = findViewById(R.id.welcome_IMG_title);
-        vsaiStartButton = findViewById(R.id.welcome_IMG_startAi);
-        soloStartButton = findViewById(R.id.welcome_IMG_startSolo);
+        top10Button = findViewById(R.id.welcome_IMG_top10);
+        startButton = findViewById(R.id.welcome_IMG_start);
         vb = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         Glide.with(this).load(R.drawable.pocket_clash2).into(title);
-        Glide.with(this).load(R.drawable.solo_start_button).into(soloStartButton);
-        Glide.with(this).load(R.drawable.vsai_start_button).into(vsaiStartButton);
+        Glide.with(this).load(R.drawable.start_button).into(startButton);
+        Glide.with(this).load(R.drawable.top10button3).into(top10Button);
         Glide.with(relativeLayout).load(R.drawable.background_welcome2).into(new CustomTarget<Drawable>() {
             @Override
             public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
@@ -92,5 +106,18 @@ public class WelcomeActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    /**
+     * A method to create and show given dialog fragment
+     */
+    private void createDialogFragment(Dialog dialog) {
+        Objects.requireNonNull(dialog.getWindow()).requestFeature(Window.FEATURE_NO_TITLE);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        dialog.show();
+        int width = getResources().getDisplayMetrics().widthPixels;
+        int height = (int) (getResources().getDisplayMetrics().heightPixels * 0.3);
+        dialog.getWindow().setLayout(width, height);
+        dialog.getWindow().setGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL);
     }
 }

@@ -16,6 +16,13 @@ public class Skill {
         this.type = type;
     }
 
+    public Skill(Skill skill) { // Copy constructor
+        this.name = skill.name;
+        this.damage = skill.damage;
+        this.points = skill.points;
+        this.type = skill.type;
+    }
+
     public int getType() {
         return type;
     }

@@ -4,11 +4,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!--TODO: Remove src stuff
-        TODO: Paint skill images (orange, green?)-->
+    <!--TODO: Remove src stuff-->
     <!--Photo by Tom Fisk from Pexels-->
     <!--Photo by Felix Mittermeier from Pexels-->
     <!--Photo by Daria Shevtsova from Pexels-->
+
 
     <ImageView
         android:id="@+id/main_IMG_backGround"
@@ -149,7 +149,7 @@
     <ImageView
         android:id="@+id/main_IMG_player1_picture"
         android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_height="130dp"
         android:layout_above="@id/main_LAY_player1_SkillsLayout"
         android:layout_alignStart="@id/main_LAY_player1_SkillsLayout"
         android:layout_marginLeft="10dp"
@@ -159,7 +159,7 @@
     <ImageView
         android:id="@+id/main_IMG_player2_picture"
         android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_height="130dp"
         android:layout_above="@id/main_LAY_player2_SkillsLayout"
         android:layout_alignEnd="@id/main_LAY_player2_SkillsLayout"
         android:layout_marginRight="10dp"
@@ -245,6 +245,15 @@
             android:secondaryProgressTint="#3949AB" />
 
     </RelativeLayout>
+
+    <ImageView
+        android:id="@+id/main_IMG_flipcoin"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:src="@drawable/flip_coin_button"
+        android:visibility="invisible" />
 
 
 </RelativeLayout>

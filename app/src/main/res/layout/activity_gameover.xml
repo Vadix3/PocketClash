@@ -20,16 +20,29 @@
         />
 
     <TextView
-        android:id="@+id/gameOver_TXT_again"
+        android:id="@+id/gameOver_TXT_menu"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginRight="50dp"
+        android:layout_marginRight="40dp"
         android:layout_marginBottom="30dp"
         android:fontFamily="@font/showg"
-        android:text="Again"
+        android:text="Menu"
         android:textColor="#00C853"
+        android:textSize="30sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/gameOver_TXT_again"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="30dp"
+        android:layout_marginLeft="165dp"
+        android:fontFamily="@font/showg"
+        android:text="Again"
+        android:textColor="#1976D2"
         android:textSize="30sp"
         android:textStyle="bold" />
 
