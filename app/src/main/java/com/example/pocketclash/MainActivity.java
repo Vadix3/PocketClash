@@ -1,10 +1,13 @@
 package com.example.pocketclash;
 
+import android.Manifest;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.location.Location;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
@@ -23,6 +26,9 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -32,12 +38,12 @@ import java.util.Collections;
 
 /**
  * TODO: **FIX OTHER RESOLUTION PROBLEMS
+ * TODO: Remove all src stuff*********
  */
-public class MainActivity extends AppCompatActivity implements CoinFlipActivity.CoinFlipListener {
+public class MainActivity extends AppCompatActivity implements CallBackListener {
     /**
-     * Widgets
+     * Views
      */
-
     RelativeLayout mainLayout;
     LinearLayout player2SkillsLayout;
 
@@ -59,10 +65,13 @@ public class MainActivity extends AppCompatActivity implements CoinFlipActivity.
     private TextView player1_skill1;
     private TextView player1_skill2;
     private TextView player1_skill3;
+    private TextView player1_hp;
 
     private TextView player2_skill1;
     private TextView player2_skill2;
     private TextView player2_skill3;
+    private TextView player2_hp;
+
 
     Toast feedBackToast;
 
@@ -74,6 +83,11 @@ public class MainActivity extends AppCompatActivity implements CoinFlipActivity.
     private View.OnClickListener healClick;
     private View.OnClickListener volumeClick;
     private View.OnClickListener coinFlipClick;
+
+    /**
+     * Dialogs
+     */
+    QuitActivity quitDialog;
 
     /**
      * Variables
@@ -93,7 +107,14 @@ public class MainActivity extends AppCompatActivity implements CoinFlipActivity.
     private int gameTheme;
     private int startingPlayer;
 
-    MediaPlayer mediaPlayer;
+    //Handlers
+    private MediaPlayer mediaPlayer;
+    private Handler handler;
+    private Runnable playAIRunnable;
+    private Runnable autoPlayRunnable;
+
+    //Location
+    FusedLocationProviderClient fusedLocationProviderClient;
 
     //Shared prefs
     MySP mySP;
@@ -109,11 +130,105 @@ public class MainActivity extends AppCompatActivity implements CoinFlipActivity.
 
     //Booleans
     private boolean isGameOver = false;
-    private boolean isVolumeOn = true;
+    private boolean isVolumeOn = false;
     private boolean top10ArraySaved = false;
+    private boolean isHandlerRunning = false;
+    private boolean isQuitDialogCalled = false;
+    private boolean isBackButtonPressed = false;
 
     /**
-     * TODO: 1. Add on click animations
+     * A method to run the handler if not already running
+     */
+    private void runHandlerIfNotRunning() {
+        if (!isHandlerRunning) { // If handler is not running, run it
+            if (gameMode == AUTO) {
+                handler.postDelayed(autoPlayRunnable, 1000);
+            }
+            if (gameMode == VS_AI)
+                handler.postDelayed(playAIRunnable, 1000);
+            isHandlerRunning = true;
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        Log.d("pttt", "On pause");
+
+        /** Stop the handler*/
+        handler.removeCallbacksAndMessages(autoPlayRunnable);
+        handler.removeCallbacksAndMessages(playAIRunnable);
+        isHandlerRunning = false;
+
+        /** Check who called on pause:
+         *  - Game has ended (endgame window)
+         *  - User pressed back button (quit activity)
+         */
+        Log.d("pttt", "Game over: " + isGameOver);
+
+        if (isGameOver) { // The game is over, go do game over sequence
+            gameOver();
+        } else { // The game is not over, user pressed back button.
+            /**TODO: Barbaric method, count how many windows open
+             * if more than 1, dont open*/
+            Log.d("pttt", "Back buttom pressed: " + isBackButtonPressed);
+            Log.d("pttt", "Dialog showing: " + quitDialog.isShowing());
+
+            /**TODO: Check from here maybe one of them is unnecessry*/
+            if (quitDialog.isShowing() || isBackButtonPressed) { // Dialog is not showing, but still going to exit app
+                Log.d("pttt", "exiting app");
+                exitApp();
+
+            }
+        }
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        Log.d("pttt", "On resume");
+        if (!isQuitDialogCalled)
+            runHandlerIfNotRunning();
+        if (isVolumeOn) {
+            mediaPlayer.start();
+        }
+        super.onResume();
+    }
+
+
+    @Override
+    protected void onStop() {
+        Log.d("pttt", "On stop");
+        if (feedBackToast != null) {
+            feedBackToast.cancel();
+        }
+
+        /** If quit dialog is open, close to reopen upon onStart*/
+        if (isQuitDialogCalled) {
+            Log.d("pttt", "Quit dialog was called, stopping app");
+        }
+        handler.removeCallbacksAndMessages(autoPlayRunnable);
+        handler.removeCallbacksAndMessages(playAIRunnable);
+        isHandlerRunning = false;
+        mediaPlayer.pause();
+        super.onStop();
+    }
+
+    @Override
+    protected void onStart() {
+        isBackButtonPressed = false;
+        Log.d("pttt", "On start");
+
+        /** If the quit dialog was called upon onStop, reopen it again*/
+        if (isQuitDialogCalled) {
+            Log.d("pttt", "onStart, Quit dialog was open");
+        } else {
+            Log.d("pttt", "onStart, Quit dialog was not open");
+            runHandlerIfNotRunning();
+        }
+        super.onStart();
+    }
+
+    /**
      * 2. Winner fragment
      * 3. Theme selection? Grid?
      * 4. Limit moves? Damage?
@@ -121,20 +236,19 @@ public class MainActivity extends AppCompatActivity implements CoinFlipActivity.
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mySP = new MySP(this);
         gameMode = getIntent().getIntExtra("GameType", 0);
         initAllSkills();
         initPlayers();
-        initWidgets();
+        initViews();
         initListeners();
         initScores();
         if (isVolumeOn) //TODO: Maybe do it on thread?
             playMusic();
 
         getGameMode();
-
+        super.onCreate(savedInstanceState);
     }
 
     /**
@@ -155,7 +269,7 @@ public class MainActivity extends AppCompatActivity implements CoinFlipActivity.
 
     /**
      * A method to initialize the total skills array (Database of skills)
-     * TODO: add inflatable skill details?
+     * TODO: add inflatable skill details? display points?
      * Name,Damage,Points,Type
      */
     private void initAllSkills() {
@@ -247,19 +361,6 @@ public class MainActivity extends AppCompatActivity implements CoinFlipActivity.
         }
     }
 
-    @Override
-    protected void onResume() {
-        if (isVolumeOn) {
-            mediaPlayer.start();
-        }
-        super.onResume();
-    }
-
-    @Override
-    protected void onStop() {
-        mediaPlayer.pause();
-        super.onStop();
-    }
 
     /**
      * A method to play background music
@@ -281,18 +382,20 @@ public class MainActivity extends AppCompatActivity implements CoinFlipActivity.
      * method continues after callback returns , getStartingAutoPlayer method(
      */
     private void newAutoGame() {
-        // TODO: add onStop and on destroy
-        // handler.removeCallBacks(Runnable);
         holdPlayer(PLAYER1);
         holdPlayer(PLAYER2);
         flipCoinButton.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * A CallBack method to get data from fragments
+     */
     @Override
-    public void getStartingAutoPlayer(int result) {
+    public void getCallback(int result) {
         Vibrator vb = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         vb.vibrate(400);
 
+        /** See who is the starting player, and init game accordingly*/
         startingPlayer = result;
         if (result == 1) {
             currentPlayer = player1;
@@ -311,19 +414,17 @@ public class MainActivity extends AppCompatActivity implements CoinFlipActivity.
      * Make random AI move and wait
      */
     private void makeStupidAIPlay() {
-        checkIfGameOver();
+        if (!isGameOver)
+            checkIfGameOver();
         int randomNum = randomIntFromInterval(0, 2);
-        Log.d("pttt", "Selected number: " + randomNum);
         final Player damagedPlayer;
         if (currentPlayer.getName() == PLAYER1)
             damagedPlayer = player2;
         else damagedPlayer = player1;
 
         final Skill randomSKill = currentPlayer.getSkills()[randomNum];
-        Log.d("pttt", "Selected skill: " + randomSKill);
 
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
+        autoPlayRunnable = new Runnable() {
             @Override
             public void run() {
                 if (!isGameOver) {
@@ -334,7 +435,8 @@ public class MainActivity extends AppCompatActivity implements CoinFlipActivity.
                     makeStupidAIPlay();
                 }
             }
-        }, 1000);
+        };
+        handler.postDelayed(autoPlayRunnable, 1000);
     }
 
     /**
@@ -567,8 +669,7 @@ public class MainActivity extends AppCompatActivity implements CoinFlipActivity.
             player2_skill3.setOnClickListener(healClick);
         }
         volumeButton.setOnClickListener(volumeClick);
-
-
+        handler = new Handler();
     }
 
     /**
@@ -576,9 +677,10 @@ public class MainActivity extends AppCompatActivity implements CoinFlipActivity.
      */
     private void flipCoinToStart() {
         CoinFlipActivity dialog = new CoinFlipActivity(MainActivity.this);
-        createDialogFragment(dialog, null);
+        createDialogFragment(dialog, "coin");
         dialog.getWindow().setDimAmount(0.9f);
     }
+
 
     /**
      * A method to check if attack is possible (enough points)
@@ -602,7 +704,7 @@ public class MainActivity extends AppCompatActivity implements CoinFlipActivity.
     /**
      * A method to initialize the widgets
      */
-    private void initWidgets() {
+    private void initViews() {
         mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.god_suriya_bashar);
         mediaPlayer.setLooping(true);
         mainLayout = findViewById(R.id.main_LAY_mainLayout);
@@ -619,12 +721,14 @@ public class MainActivity extends AppCompatActivity implements CoinFlipActivity.
         player1_skill2.setText(player1.highSkill().getName());
         player1_skill3 = findViewById(R.id.main_BTN_player1_skill3);
         player1_skill3.setText(player1.heal().getName());
+        player1_hp = findViewById(R.id.main_BAR_Player1_HealthPoings);
         player2_skill1 = findViewById(R.id.main_BTN_player2_skill1);
         player2_skill1.setText(player2.lowSkill().getName());
         player2_skill2 = findViewById(R.id.main_BTN_player2_skill2);
         player2_skill2.setText(player2.highSkill().getName());
         player2_skill3 = findViewById(R.id.main_BTN_player2_skill3);
         player2_skill3.setText(player2.heal().getName());
+        player2_hp = findViewById(R.id.main_BAR_Player2_HealthPoings);
 
 
         player1_name = findViewById(R.id.main_LBL_player1_Stats_name);
@@ -646,6 +750,7 @@ public class MainActivity extends AppCompatActivity implements CoinFlipActivity.
         player1_health.setProgress(MAX_HP);
         player2_health.setProgress(MAX_HP);
 
+        quitDialog = new QuitActivity(MainActivity.this);
 
         player1_picture = findViewById(R.id.main_IMG_player1_picture);
         player2_picture = findViewById(R.id.main_IMG_player2_picture);
@@ -681,7 +786,8 @@ public class MainActivity extends AppCompatActivity implements CoinFlipActivity.
      */
     private void checkIfGameOver() {
         if (player1.getHealth() <= 0 || player2.getHealth() <= 0) {
-            gameOver();
+            isGameOver = true; // Declare over
+            onPause(); // Pause game
         }
     }
 
@@ -720,31 +826,30 @@ public class MainActivity extends AppCompatActivity implements CoinFlipActivity.
             holdPlayer(PLAYER1);
             releasePlayer(PLAYER2);
             if (gameMode == VS_AI) { // Wait a bit and wait for AI if game is not over
-                checkIfGameOver();
+                if (!isGameOver)
+                    checkIfGameOver();
                 //Attacking again after finish or adding twice
                 if (!isGameOver) // if not over play AI
                     holdGame();
             }
 
         }
-
         checkIfSwitchProgressColor();
-
-        checkIfGameOver();
-
+        if (!isGameOver)
+            checkIfGameOver();
     }
 
     /**
      * A method to hold the game to simulate thinking
      */
     private void holdGame() {
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
+        playAIRunnable = new Runnable() {
             @Override
             public void run() {
                 playAI();
             }
-        }, 1500);
+        };
+        handler.postDelayed(playAIRunnable, 1500);
     }
 
     /**
@@ -768,6 +873,11 @@ public class MainActivity extends AppCompatActivity implements CoinFlipActivity.
                     player1.setHealth(player1_health.getProgress());
                     displayToast(player1.getName() + " heals " + damage + " HP!");
                 }
+                if (player1_health.getProgress() < 0) {
+                    player1_hp.setText("0");
+                } else {
+                    player1_hp.setText("" + player1_health.getProgress());
+                }
 
                 break;
             case PLAYER2:
@@ -783,6 +893,11 @@ public class MainActivity extends AppCompatActivity implements CoinFlipActivity.
                     player2_health.setProgress(player2_health.getProgress() + damage);
                     player2.setHealth(player2_health.getProgress());
                     displayToast(player2.getName() + " heals " + damage + " HP!");
+                }
+                if (player2_health.getProgress() < 0) {
+                    player2_hp.setText("0");
+                } else {
+                    player2_hp.setText("" + player2_health.getProgress());
                 }
                 break;
         }
@@ -830,17 +945,20 @@ public class MainActivity extends AppCompatActivity implements CoinFlipActivity.
     }
 
     private void exitApp() {
-        QuitActivity dialog = new QuitActivity(MainActivity.this);
-        createDialogFragment(dialog, null);
+        createDialogFragment(quitDialog, "exit");
     }
 
     /**
      * A method to create and show given dialog fragment
      */
-    private void createDialogFragment(final Dialog dialog, String val) {
-        dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+    private void createDialogFragment(final Dialog dialog, final String val) {
+//        dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         dialog.show();
+        if (val.equals("exit"))
+            Log.d("pttt", "exit dialog was shown");
+
+
         int width = (int) (getResources().getDisplayMetrics().widthPixels * 0.55);
         int height = (int) (getResources().getDisplayMetrics().heightPixels * 0.55);
         dialog.getWindow().setLayout(width, height);
@@ -848,6 +966,22 @@ public class MainActivity extends AppCompatActivity implements CoinFlipActivity.
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialogInterface) {
+                //TODO: Switch case here
+                Log.d("pttt", "DIALOG WAS DISMISSED!");
+                /** If the dialog is an exit dialog*/
+                if (val.equals("exit")) {
+                    isBackButtonPressed = false;
+                    isQuitDialogCalled = false;
+                    onResume();
+                }
+                /** If the dialog is a game over dialog*/
+                //TODO: Take care of these stuff
+                if (val.equals("gameOver")) {
+                    onStart();
+                }
+                if (val.equals("coin")) {
+                    onStart();
+                }
 
             }
         });
@@ -858,50 +992,69 @@ public class MainActivity extends AppCompatActivity implements CoinFlipActivity.
      */
     @Override
     public void onBackPressed() {
-        exitApp();
+        if (feedBackToast != null)
+            feedBackToast.cancel();
+        isBackButtonPressed = true;
+        isQuitDialogCalled = true;
+        onPause();
     }
 
     /**
      * A method to display the game over dialog
      */
     public void onGameOver(Player winner) {
-        isGameOver = true;
         GameOverActivity win = new GameOverActivity(MainActivity.this, winner, gameMode);
-        createDialogFragment(win, null);
-        getWinnerLocation(winner);
-        if (!top10ArraySaved)
-            updateTop10Array(winner);
+        createDialogFragment(win, "gameOver");
+        Score temp = new Score(winner.getNumOfTurns());
+        getWinnerLocation(winner, temp);
     }
 
     /**
      * A method to get the location of winning player
      */
-    private void getWinnerLocation(Player winner) {
+    private void getWinnerLocation(final Player winner, final Score score) {
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        if (getApplicationContext().checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) { // If user gave permission
+            // Get the winner location
+            fusedLocationProviderClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
+                @Override
+                public void onSuccess(Location location) {
+                    if (location != null) { // null if location turned off
+                        Double lat = location.getLatitude();
+                        Double lon = location.getLongitude();
+                        MyLocation tempLocation = new MyLocation(lat, lon);
+                        score.setLocation(tempLocation);
+                        if (!top10ArraySaved)
+                            updateTop10Array(winner, score);
+                    }
+                }
+            });
+
+        } else { // Request permission from user
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    1);
+        }
 
     }
 
     /**
      * A method to update top 10 array and prefs
      */
-    private void updateTop10Array(Player winner) {
+    private void updateTop10Array(Player winner, Score score) {
         if (winner.getNumOfTurns() != 0) {
-            //TODO: 1. Check for duplicates?
-            int numberOfTotalTurns = player1.getNumOfTurns() + player2.getNumOfTurns(); // Total turns
-            int numberOfWinnerTurns = winner.getNumOfTurns(); // Winner turns
-            Score temp = new Score(numberOfWinnerTurns); //TODO: Check if total number of turns is needed
-
             if (top10Scores == null) { // if array is empty
-                top10Scores.add(temp);
+                top10Scores.add(score);
             } else { // Array contains something
                 if (top10Scores.size() < 10) { // There is space in the array
-                    top10Scores.add(temp);
+                    top10Scores.add(score);
 
                     Collections.sort(top10Scores);
                 } else { // No space in the array
 
                     //Check if the score is better than the last score
-                    if (temp.getNumOfTurns() < top10Scores.get(9).getNumOfTurns()) { //If temp is good
-                        top10Scores.set(9, temp);
+                    if (score.getNumOfTurns() < top10Scores.get(9).getNumOfTurns()) { //If temp is good
+                        top10Scores.set(9, score);
                         Collections.sort(top10Scores);
                     }
                 }

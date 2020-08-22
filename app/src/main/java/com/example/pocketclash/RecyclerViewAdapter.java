@@ -1,25 +1,18 @@
 package com.example.pocketclash;
 
 import android.content.Context;
-import android.os.Vibrator;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
-import android.widget.PopupMenu;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.view.menu.MenuView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
-
-import javax.xml.datatype.Duration;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
 
@@ -44,8 +37,9 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
      */
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, final int position) {
-        holder.score.setText("Score: " + String.valueOf(scores.get(position).getNumOfTurns()));
-        holder.location.setText(scores.get(position).getLocation());
+        holder.score.setText("Score: " + scores.get(position).getNumOfTurns());
+        MyLocation temp = scores.get(position).getLocation();
+        holder.location.setText("Lat: " + temp.getLat() + " | Lon: " + temp.getLon());
 
         /** Set listener for click*/
         holder.options.setOnClickListener(new View.OnClickListener() {
@@ -81,13 +75,13 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            initWidgets();
+            initViews();
         }
 
         /**
          * A method to initialize the widgets of the row
          */
-        private void initWidgets() {
+        private void initViews() {
             score = itemView.findViewById(R.id.row_LBL_score);
             location = itemView.findViewById(R.id.row_LBL_location);
             mainLayout = itemView.findViewById(R.id.row_LAY_mainLayout);

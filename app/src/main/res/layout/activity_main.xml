@@ -193,18 +193,28 @@
         <ProgressBar
             android:id="@+id/main_BAR_Player1_progressBar"
             style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-            android:layout_width="100dp"
-            android:layout_height="wrap_content"
+            android:layout_width="110dp"
+            android:layout_height="23dp"
             android:layout_alignParentBottom="true"
-            android:layout_marginLeft="40dp"
-            android:layout_marginBottom="15dp"
-            android:background="@drawable/background_border"
+            android:layout_marginLeft="35dp"
+            android:layout_marginBottom="11dp"
             android:indeterminate="false"
             android:max="100"
             android:min="0"
             android:progressDrawable="@drawable/custom_progress"
             android:progressTint="#64DD17"
             android:secondaryProgressTint="#3949AB" />
+
+        <TextView
+            android:id="@+id/main_BAR_Player1_HealthPoings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="40dp"
+            android:layout_marginTop="41.5dp"
+            android:text="100"
+            android:textColor="@color/black"
+            android:textStyle="bold" />
+
 
     </RelativeLayout>
 
@@ -231,18 +241,27 @@
         <ProgressBar
             android:id="@+id/main_BAR_Player2_progressBar"
             style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-            android:layout_width="100dp"
-            android:layout_height="wrap_content"
+            android:layout_width="110dp"
+            android:layout_height="23dp"
             android:layout_alignParentBottom="true"
-            android:layout_marginLeft="40dp"
-            android:layout_marginBottom="18dp"
-            android:background="@drawable/background_border"
+            android:layout_marginLeft="36dp"
+            android:layout_marginBottom="13dp"
             android:indeterminate="false"
             android:max="100"
             android:min="0"
             android:progressDrawable="@drawable/custom_progress"
             android:progressTint="#64DD17"
             android:secondaryProgressTint="#3949AB" />
+
+        <TextView
+            android:id="@+id/main_BAR_Player2_HealthPoings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="40dp"
+            android:layout_marginTop="43dp"
+            android:text="100"
+            android:textColor="@color/black"
+            android:textStyle="bold" />
 
     </RelativeLayout>
 

@@ -23,11 +23,7 @@ import android.widget.RelativeLayout;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
-import java.io.Serializable;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -37,7 +33,7 @@ import java.util.Objects;
 public class WelcomeActivity extends AppCompatActivity {
 
     /**
-     * Widgets
+     * Views
      */
     ImageView title;
     ImageView startButton;
@@ -45,15 +41,11 @@ public class WelcomeActivity extends AppCompatActivity {
     RelativeLayout relativeLayout;
     Vibrator vb;
 
-
-    MySP mySP;
-    ArrayList<Score> top10Scores;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
-        initWidgets();
+        initViews();
         initListeners();
     }
 
@@ -64,21 +56,20 @@ public class WelcomeActivity extends AppCompatActivity {
     @SuppressLint("ClickableViewAccessibility")
     private void initListeners() {
 
-        startButton.setOnTouchListener(new View.OnTouchListener() {
+        startButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
+            public void onClick(View view) {
                 GameModeActivity dialog = new GameModeActivity(WelcomeActivity.this);
                 createDialogFragment(dialog);
                 Objects.requireNonNull(dialog.getWindow()).setDimAmount(0.975f);
-                return false;
             }
         });
-        top10Button.setOnTouchListener(new View.OnTouchListener() {
+        top10Button.setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
+            public void onClick(View view) {
+                finish();
                 Intent intent = new Intent(WelcomeActivity.this, TopTenActivity.class);
                 startActivity(intent);
-                return false;
             }
         });
     }
@@ -86,7 +77,7 @@ public class WelcomeActivity extends AppCompatActivity {
     /**
      * A method to initialize the widgets
      */
-    private void initWidgets() {
+    private void initViews() {
         relativeLayout = findViewById(R.id.welcome_LAY_mainLayout);
         title = findViewById(R.id.welcome_IMG_title);
         top10Button = findViewById(R.id.welcome_IMG_top10);

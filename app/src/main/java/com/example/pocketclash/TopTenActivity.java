@@ -3,7 +3,6 @@ package com.example.pocketclash;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -28,7 +27,7 @@ import java.util.ArrayList;
 public class TopTenActivity extends AppCompatActivity implements View.OnLongClickListener, View.OnClickListener {
 
     /**
-     * Widgets
+     * Views
      */
     private RecyclerView recyclerView;
     private TextView clearButton;
@@ -44,10 +43,10 @@ public class TopTenActivity extends AppCompatActivity implements View.OnLongClic
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        mySP = new MySP(getApplicationContext());
         super.onCreate(savedInstanceState);
+        mySP = new MySP(getApplicationContext());
         setContentView(R.layout.activity_topten);
-        initWidgets();
+        initViews();
         initScores();
         initRecyclerView();
     }
@@ -64,7 +63,7 @@ public class TopTenActivity extends AppCompatActivity implements View.OnLongClic
     /**
      * A method to initialize the widgets
      */
-    private void initWidgets() {
+    private void initViews() {
         recyclerView = findViewById(R.id.top10_LST_recyclerView);
         clearButton = findViewById(R.id.top10_LBL_clearList);
         clearButton.setOnLongClickListener(this);
@@ -136,5 +135,13 @@ public class TopTenActivity extends AppCompatActivity implements View.OnLongClic
 
         toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT);
         toast.show();
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        finish();
+        Intent intent = new Intent(TopTenActivity.this, WelcomeActivity.class);
+        startActivity(intent);
     }
 }

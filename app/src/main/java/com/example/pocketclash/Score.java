@@ -1,11 +1,9 @@
 package com.example.pocketclash;
 
-import java.io.Serializable;
-
 public class Score implements Comparable {
     private int numOfTurns = 0;
 
-    private String location = "Score Location";
+    private MyLocation location;
 
     public Score() {
     }
@@ -14,7 +12,7 @@ public class Score implements Comparable {
         this.numOfTurns = numOfTurns;
     }
 
-    public Score(int numOfTurns, String location) {
+    public Score(int numOfTurns, MyLocation location) {
         this.numOfTurns = numOfTurns;
         this.location = location;
     }
@@ -27,11 +25,11 @@ public class Score implements Comparable {
         this.numOfTurns = numOfTurns;
     }
 
-    public String getLocation() {
+    public MyLocation getLocation() {
         return location;
     }
 
-    public void setLocation(String location) {
+    public void setLocation(MyLocation location) {
         this.location = location;
     }
 
@@ -45,4 +43,6 @@ public class Score implements Comparable {
     public String toString() {
         return "Number of turns: " + this.numOfTurns;
     }
+
+
 }

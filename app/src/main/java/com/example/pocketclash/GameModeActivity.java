@@ -4,28 +4,18 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
-import android.media.Image;
 import android.os.Bundle;
 import android.os.Vibrator;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+public class GameModeActivity extends Dialog implements View.OnClickListener {
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.target.CustomTarget;
-import com.bumptech.glide.request.transition.Transition;
-
-public class GameModeActivity extends Dialog implements View.OnTouchListener {
-
-    private Activity myActivity;
+    private Context mContext;
     private RelativeLayout mainLayout;
     private ImageView soloImage;
     private ImageView vsAIImage;
@@ -33,9 +23,9 @@ public class GameModeActivity extends Dialog implements View.OnTouchListener {
     private ImageView background;
     private Vibrator vb;
 
-    public GameModeActivity(Activity activity) {
-        super(activity);
-        this.myActivity = activity;
+    public GameModeActivity(Context context) {
+        super(context);
+        this.mContext = context;
     }
 
     @Override
@@ -43,47 +33,50 @@ public class GameModeActivity extends Dialog implements View.OnTouchListener {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_game_mode);
-        initWidgets();
+        initViews();
     }
 
-    private void initWidgets() {
-        vb = (Vibrator) myActivity.getSystemService(Context.VIBRATOR_SERVICE);
+    private void initViews() {
+        vb = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
         mainLayout = findViewById(R.id.mode_LAY_mainLayout);
         soloImage = findViewById(R.id.mode_IMG_solo);
         vsAIImage = findViewById(R.id.mode_IMG_vsAI);
         autoImage = findViewById(R.id.mode_IMG_auto);
         background = findViewById(R.id.mode_IMG_background);
 
-        soloImage.setOnTouchListener(this);
-        autoImage.setOnTouchListener(this);
-        vsAIImage.setOnTouchListener(this);
+        soloImage.setOnClickListener(this);
+        autoImage.setOnClickListener(this);
+        vsAIImage.setOnClickListener(this);
     }
 
     @Override
-    public boolean onTouch(View view, MotionEvent motionEvent) {
-        Intent intent = new Intent(myActivity, MainActivity.class);
+    public void onClick(View view) {
+        Intent intent = new Intent(mContext, MainActivity.class);
 
         switch (view.getId()) {
             case R.id.mode_IMG_solo:
+                dismiss();
                 vb.vibrate(5);
                 intent.putExtra("GameType", 0);
-                myActivity.startActivity(intent);
-                myActivity.finish();
-                return false;
+                mContext.startActivity(intent);
+                ((Activity) mContext).finish();
+                break;
             case R.id.mode_IMG_vsAI:
+                dismiss();
                 vb.vibrate(5);
                 intent.putExtra("GameType", 1);
-                myActivity.startActivity(intent);
-                myActivity.finish();
-                return false;
+                mContext.startActivity(intent);
+                ((Activity) mContext).finish();
+                break;
             case R.id.mode_IMG_auto:
+                dismiss();
                 vb.vibrate(5);
                 intent.putExtra("GameType", 2);
-                myActivity.startActivity(intent);
-                myActivity.finish();
-                return false;
+                mContext.startActivity(intent);
+                ((Activity) mContext).finish();
+                break;
             default:
-                return false;
+                Log.d("pttt", "Problem");
         }
     }
 }

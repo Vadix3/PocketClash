@@ -26,19 +26,21 @@ public class GameOverActivity extends Dialog implements View.OnClickListener {
     private TextView againButton;
     private TextView quitButton;
     private TextView menuButton;
-    private Activity currentActivity;
+    private Context mContext;
     RelativeLayout background;
     private Player winner;
     private int gameMode;
+    private CallBackListener listener;
+
 
     /**
      * GameMode 0 = solo
      * GameMode 1 = vsAI
      * GameMode 2 = Auto
      */
-    public GameOverActivity(Activity activity, Player winner, int gameMode) {
-        super(activity);
-        this.currentActivity = activity;
+    public GameOverActivity(Context context, Player winner, int gameMode) {
+        super(context);
+        this.mContext = context;
         this.winner = winner;
         this.gameMode = gameMode;
     }
@@ -52,19 +54,19 @@ public class GameOverActivity extends Dialog implements View.OnClickListener {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                Vibrator vb = (Vibrator) currentActivity.getSystemService(Context.VIBRATOR_SERVICE);
+                Vibrator vb = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
                 vb.vibrate(400);
             }
         }, 200);
 
-        initWidgets();
+        initViews();
         this.setCancelable(false);
     }
 
     /**
      * A method to init widgets
      */
-    private void initWidgets() {
+    private void initViews() {
         againButton = findViewById(R.id.gameOver_TXT_again);
         againButton.setOnClickListener(this);
         quitButton = findViewById(R.id.gameOver_TXT_quit);
@@ -97,23 +99,38 @@ public class GameOverActivity extends Dialog implements View.OnClickListener {
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.gameOver_TXT_menu:
-                //TODO: Exiting not good?
+                dismiss();
                 Intent intent = new Intent(view.getContext(), WelcomeActivity.class);
-                currentActivity.startActivity(intent);
-                currentActivity.finish();
+                mContext.startActivity(intent);
+                ((Activity) mContext).finish();
                 break;
             case R.id.gameOver_TXT_quit:
+                dismiss();
                 System.exit(0);
                 break;
             case R.id.gameOver_TXT_again:
+                dismiss();
                 Intent againIntent = new Intent(view.getContext(), MainActivity.class);
                 againIntent.putExtra("GameType", gameMode);
-                currentActivity.startActivity(againIntent);
-                currentActivity.finish();
+                mContext.startActivity(againIntent);
+                ((Activity) mContext).finish();
         }
     }
 
     @Override
     public void onBackPressed() {
+    }
+
+    /**
+     * A method to return to the game with proper mode
+     */
+    public void startGame(final int startingPlayer) {
+        try {
+            listener = (CallBackListener) mContext;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(mContext.toString() + "Must implement dialog listener");
+        }
+
+        listener.getCallback(startingPlayer);
     }
 }

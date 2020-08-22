@@ -18,7 +18,7 @@ public class CoinFlipActivity extends Dialog {
     private ImageView player1Image;
     private ImageView player2Image;
 
-    private CoinFlipListener listener;
+    private CallBackListener listener;
 
     private boolean isPlayer1Starting = true;
 
@@ -40,7 +40,7 @@ public class CoinFlipActivity extends Dialog {
          * Player 1 = even
          * Player 2 = odd
          */
-        initWidgets();
+        initViews();
         decideWhoStarts();
     }
 
@@ -51,7 +51,7 @@ public class CoinFlipActivity extends Dialog {
 
     }
 
-    private void initWidgets() {
+    private void initViews() {
 
         player1Image = findViewById(R.id.ImageView01);
         player2Image = findViewById(R.id.ImageView02);
@@ -142,6 +142,7 @@ public class CoinFlipActivity extends Dialog {
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
+                    dismiss();
                     startGame(startingPlayer);
                 }
             }, 1200);
@@ -156,21 +157,13 @@ public class CoinFlipActivity extends Dialog {
          */
         public void startGame(final int startingPlayer) {
             try {
-                listener = (CoinFlipListener) activity;
+                listener = (CallBackListener) activity;
             } catch (ClassCastException e) {
                 throw new ClassCastException(activity.toString() + "Must implement dialog listener");
             }
 
-            listener.getStartingAutoPlayer(startingPlayer);
-            dismiss();
+            listener.getCallback(startingPlayer);
         }
     }
 
-
-    /**
-     * A callBack interface to return the starting player
-     */
-    public interface CoinFlipListener {
-        void getStartingAutoPlayer(int result);
-    }
 }

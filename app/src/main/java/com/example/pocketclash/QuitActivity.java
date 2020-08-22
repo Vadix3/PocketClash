@@ -2,25 +2,17 @@ package com.example.pocketclash;
 
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
-import android.media.Image;
 import android.os.Bundle;
-import android.text.Layout;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.DialogFragment;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
@@ -44,17 +36,17 @@ public class QuitActivity extends Dialog implements View.OnClickListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_quit);
-        initWidgets();
-        this.setCancelable(false);
+        initViews();
+//        this.setCancelable(false);
+        super.onCreate(savedInstanceState);
     }
 
     /**
      * A method to init widgets
      */
-    private void initWidgets() {
+    private void initViews() {
         mainLayout = findViewById(R.id.quitDialog_LAY_mainLayout);
         yesButton = findViewById(R.id.quitDialog_TXT_yesText);
         yesButton.setOnClickListener(this);
@@ -84,12 +76,14 @@ public class QuitActivity extends Dialog implements View.OnClickListener {
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.quitDialog_TXT_yesText:
+                dismiss();
                 System.exit(0);
                 break;
             case R.id.quitDialog_TXT_noText:
                 dismiss();
                 break;
             case R.id.quitDialog_TXT_menuText:
+                dismiss();
                 Intent intent = new Intent(view.getContext(), WelcomeActivity.class);
                 myActivity.startActivity(intent);
                 myActivity.finish();

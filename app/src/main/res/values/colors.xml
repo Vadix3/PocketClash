@@ -6,5 +6,6 @@
     <color name="colorLowHP">#D50000</color>
     <color name="colorHighHP">#64DD17</color>
     <color name="colorHeadLine">#00BFA5</color>
+    <color name="black">#191919</color>
     <color name="colorTextColor">@android:color/secondary_text_light</color>
 </resources>
