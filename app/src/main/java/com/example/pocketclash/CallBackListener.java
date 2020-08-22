@@ -6,6 +6,5 @@ package com.example.pocketclash;
  */
 public interface CallBackListener {
     // 1 - starting player
-    // 2 - getting
     void getCallback(int result);
 }

@@ -32,6 +32,9 @@ public class GameOverActivity extends Dialog implements View.OnClickListener {
     private int gameMode;
     private CallBackListener listener;
 
+    private static final int QUIT_GAME = 10;
+    private static final int MAIN_MENU = 11;
+    private static final int PLAY_AGAIN = 12;
 
     /**
      * GameMode 0 = solo
@@ -99,21 +102,16 @@ public class GameOverActivity extends Dialog implements View.OnClickListener {
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.gameOver_TXT_menu:
+                gameOverMode(MAIN_MENU);
                 dismiss();
-                Intent intent = new Intent(view.getContext(), WelcomeActivity.class);
-                mContext.startActivity(intent);
-                ((Activity) mContext).finish();
                 break;
             case R.id.gameOver_TXT_quit:
                 dismiss();
-                System.exit(0);
+                gameOverMode(QUIT_GAME);
                 break;
             case R.id.gameOver_TXT_again:
                 dismiss();
-                Intent againIntent = new Intent(view.getContext(), MainActivity.class);
-                againIntent.putExtra("GameType", gameMode);
-                mContext.startActivity(againIntent);
-                ((Activity) mContext).finish();
+                gameOverMode(PLAY_AGAIN);
         }
     }
 
@@ -124,13 +122,13 @@ public class GameOverActivity extends Dialog implements View.OnClickListener {
     /**
      * A method to return to the game with proper mode
      */
-    public void startGame(final int startingPlayer) {
+    public void gameOverMode(final int gameOverMode) {
         try {
             listener = (CallBackListener) mContext;
         } catch (ClassCastException e) {
             throw new ClassCastException(mContext.toString() + "Must implement dialog listener");
         }
 
-        listener.getCallback(startingPlayer);
+        listener.getCallback(gameOverMode);
     }
 }

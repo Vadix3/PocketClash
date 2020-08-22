@@ -4,7 +4,6 @@ public class Player {
     private int health = 0;
     private String name = "";
     private Skill[] skills = null;
-
     //More properties
     private int numOfTurns = 0;
 

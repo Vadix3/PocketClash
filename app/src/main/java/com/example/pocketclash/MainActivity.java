@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -83,11 +84,13 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
     private View.OnClickListener healClick;
     private View.OnClickListener volumeClick;
     private View.OnClickListener coinFlipClick;
+    private View.OnLongClickListener statsListener;
 
     /**
      * Dialogs
      */
     QuitActivity quitDialog;
+    GameOverActivity gameOverDialog;
 
     /**
      * Variables
@@ -98,14 +101,20 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
     private static final int SOLO = 0; // Part 1 of HW
     private static final int VS_AI = 1;
     private static final int AUTO = 2; // Part 2 of HW
+    private static final int QUIT_GAME = 10;
+    private static final int MAIN_MENU = 11;
+    private static final int PLAY_AGAIN = 12;
 
     private static final int BASHAR = 0;
 
     private static final String PLAYER2 = "Player2";
     private static final String PLAYER1 = "Player1";
-    private int gameMode;
     private int gameTheme;
+    private int gameMode; // AUTO, VS_AI, SOLO*/
+    private int gameOverMode = 0; // MENU, QUIT, SOLO*/
     private int startingPlayer;
+    private int callbackResult = 0;
+
 
     //Handlers
     private MediaPlayer mediaPlayer;
@@ -134,7 +143,9 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
     private boolean top10ArraySaved = false;
     private boolean isHandlerRunning = false;
     private boolean isQuitDialogCalled = false;
+    private boolean isGameOverDialogCalled = false;
     private boolean isBackButtonPressed = false;
+    private boolean hasAImademove = false;
 
     /**
      * A method to run the handler if not already running
@@ -144,77 +155,74 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
             if (gameMode == AUTO) {
                 handler.postDelayed(autoPlayRunnable, 1000);
             }
-            if (gameMode == VS_AI)
+            if (gameMode == VS_AI && !hasAImademove)
                 handler.postDelayed(playAIRunnable, 1000);
             isHandlerRunning = true;
         }
     }
 
-    @Override
-    protected void onPause() {
-        Log.d("pttt", "On pause");
-
-        /** Stop the handler*/
+    /**
+     * Stop the handler
+     */
+    private void stopHandler() {
         handler.removeCallbacksAndMessages(autoPlayRunnable);
         handler.removeCallbacksAndMessages(playAIRunnable);
         isHandlerRunning = false;
+    }
 
-        /** Check who called on pause:
-         *  - Game has ended (endgame window)
-         *  - User pressed back button (quit activity)
-         */
-        Log.d("pttt", "Game over: " + isGameOver);
-
-        if (isGameOver) { // The game is over, go do game over sequence
-            gameOver();
-        } else { // The game is not over, user pressed back button.
-            /**TODO: Barbaric method, count how many windows open
-             * if more than 1, dont open*/
-            Log.d("pttt", "Back buttom pressed: " + isBackButtonPressed);
-            Log.d("pttt", "Dialog showing: " + quitDialog.isShowing());
-
-            /**TODO: Check from here maybe one of them is unnecessry*/
-            if (quitDialog.isShowing() || isBackButtonPressed) { // Dialog is not showing, but still going to exit app
-                Log.d("pttt", "exiting app");
-                exitApp();
-
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d("pttt", "On pause");
+        stopHandler();
+        if (gameOverMode == 0) { // Game is not over yet, here for onBackPressed or home
+            if (isGameOver) { // The game is over, go do game over sequence
+                gameOver();
+            } else { // The game is not over, user pressed back button.
+                if (quitDialog.isShowing() || isBackButtonPressed) { // Dialog is not showing,
+                    // but still going to exit app
+                    Log.d("pttt", "exiting app");
+                    exitApp();
+                }
             }
         }
-        super.onPause();
     }
 
     @Override
     protected void onResume() {
+        super.onResume();
         Log.d("pttt", "On resume");
         if (!isQuitDialogCalled)
             runHandlerIfNotRunning();
         if (isVolumeOn) {
             mediaPlayer.start();
         }
-        super.onResume();
     }
 
 
     @Override
     protected void onStop() {
         Log.d("pttt", "On stop");
+        super.onStop();
         if (feedBackToast != null) {
             feedBackToast.cancel();
         }
-
-        /** If quit dialog is open, close to reopen upon onStart*/
-        if (isQuitDialogCalled) {
-            Log.d("pttt", "Quit dialog was called, stopping app");
+        if (gameOverMode == 0) { // Game is not over yet, here for onBackPressed or home
+            /** If quit dialog is open, close to reopen upon onStart*/
+            if (isQuitDialogCalled) {
+                Log.d("pttt", "Quit dialog was called, stopping app");
+            }
+            stopHandler();
+            mediaPlayer.pause();
         }
-        handler.removeCallbacksAndMessages(autoPlayRunnable);
-        handler.removeCallbacksAndMessages(playAIRunnable);
-        isHandlerRunning = false;
-        mediaPlayer.pause();
-        super.onStop();
+        if (gameOverDialog != null) {
+            gameOverDialog.dismiss();
+        }
     }
 
     @Override
     protected void onStart() {
+        super.onStart();
         isBackButtonPressed = false;
         Log.d("pttt", "On start");
 
@@ -225,7 +233,6 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
             Log.d("pttt", "onStart, Quit dialog was not open");
             runHandlerIfNotRunning();
         }
-        super.onStart();
     }
 
     /**
@@ -240,15 +247,24 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
         mySP = new MySP(this);
         gameMode = getIntent().getIntExtra("GameType", 0);
         initAllSkills();
+        initNewGame();
+
+        super.onCreate(savedInstanceState);
+    }
+
+    /**
+     * Initialize a new game
+     */
+    private void initNewGame() {
+        isGameOver = false;
+        top10ArraySaved = false;
         initPlayers();
         initViews();
         initListeners();
         initScores();
         if (isVolumeOn) //TODO: Maybe do it on thread?
             playMusic();
-
         getGameMode();
-        super.onCreate(savedInstanceState);
     }
 
     /**
@@ -348,6 +364,7 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
      * 2 = online (in future)
      */
     private void getGameMode() {
+        Log.d("pttt", "Game mode: " + gameMode);
         switch (gameMode) {
             case SOLO:
                 newSoloGame();
@@ -393,20 +410,35 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
     @Override
     public void getCallback(int result) {
         Vibrator vb = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        vb.vibrate(400);
 
         /** See who is the starting player, and init game accordingly*/
-        startingPlayer = result;
-        if (result == 1) {
-            currentPlayer = player1;
-            holdPlayer(PLAYER2);
-            releasePlayer(PLAYER1);
-        } else {
-            currentPlayer = player2;
-            holdPlayer(PLAYER1);
-            releasePlayer(PLAYER2);
+        if (result == 1 || result == 2) { // Coming from coinFlip
+            vb.vibrate(400);
+            startingPlayer = result;
+            if (result == 1) {
+                currentPlayer = player1;
+                holdPlayer(PLAYER2);
+                releasePlayer(PLAYER1);
+            } else {
+                currentPlayer = player2;
+                holdPlayer(PLAYER1);
+                releasePlayer(PLAYER2);
+            }
+            makeStupidAIPlay();
         }
-        makeStupidAIPlay();
+        /** See what is the return result of gameOver menu. MAIN_MENU / AGAIN / QUIT*/
+        else {
+            callbackResult = result;
+            performRequiredOP();
+
+//            if (player1.getHealth() == 0) { // Player 2 has won
+//                Score temp = new Score(player2.getNumOfTurns());
+//                getWinnerLocation(player2, temp);
+//            } else { // Player 1 has won
+//                Score temp = new Score(player1.getNumOfTurns());
+//                getWinnerLocation(player1, temp);
+//            }
+        }
     }
 
 
@@ -414,6 +446,10 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
      * Make random AI move and wait
      */
     private void makeStupidAIPlay() {
+        player1_skill1.setClickable(false);
+        player1_skill2.setClickable(false);
+        player1_skill3.setClickable(false);
+
         if (!isGameOver)
             checkIfGameOver();
         int randomNum = randomIntFromInterval(0, 2);
@@ -481,6 +517,7 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
                 }
             }
         }
+        hasAImademove = true;
     }
 
     /**
@@ -575,9 +612,11 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
         player1_skill3.setBackground(getDrawable(R.drawable.unavailable_skill));
 
         if (player1_health.getProgress() <= 0) {
+            player1.setHealth(0);
             onGameOver(player2);
         } else {
             onGameOver(player1);
+            player2.setHealth(0);
         }
     }
 
@@ -586,12 +625,10 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
      * Weak skill click (-10)
      * Medium skill click (-15)
      * Strong skill click (-20)
-     * TODO:Reduce points here
      */
 
     private void initListeners() {
-        /**TODO: 1.fix the mutual heal
-         *       2.move the update Turns after skill execution*/
+
         /** Weak skill*/
         weakClick = new View.OnClickListener() {
 
@@ -650,6 +687,7 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
                 }
             }
         };
+        /** Coin flip*/
         coinFlipClick = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -657,7 +695,22 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
                 flipCoinButton.setVisibility(View.INVISIBLE);
             }
         };
-        //TODO: Choose player grid
+
+        statsListener = new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                Skill temp = getSkillFromArray(view);
+                if (temp.getType() == HEAL)
+                    displayToast("Heal: " + temp.getDamage() + " HP\nAP: " + temp.getPoints() +
+                            " Points");
+                else
+                    displayToast("Damage: " + temp.getDamage() + " HP\nAP: " + temp.getPoints() +
+                            " Points");
+
+                return true;
+            }
+        };
+        //TODO: Choose player grid by theme
         player1_skill1.setOnClickListener(weakClick);
         player1_skill2.setOnClickListener(strongClick);
         player1_skill3.setOnClickListener(healClick);
@@ -670,6 +723,29 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
         }
         volumeButton.setOnClickListener(volumeClick);
         handler = new Handler();
+    }
+
+    /**
+     * A method to return the damage and the remaining points of the selected skill
+     */
+    private Skill getSkillFromArray(View view) {
+        String skillName = ((TextView) view).getText().toString();
+
+        if (view.equals(player1_skill1) || view.equals(player1_skill2) ||
+                view.equals(player1_skill3)) { // Player 1 skill
+            for (Skill skill : player1.getSkills())
+                if (skill.getName().equals(skillName)) {
+                    Log.d("pttt", "Player 1 skill: " + skill.getName());
+                    return skill;
+                }
+        } else { // Player 2 skill
+            for (Skill skill : player2.getSkills())
+                if (skill.getName().equals(skillName)) {
+                    Log.d("pttt", "Player 2 skill: " + skill.getName());
+                    return skill;
+                }
+        }
+        return null;
     }
 
     /**
@@ -686,7 +762,6 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
      * A method to check if attack is possible (enough points)
      */
     private boolean checkIfAttackPossible(Skill skill) {
-        /**TODO: do return until fix AI*/
 
         if (skill.getPoints() > 0) {
 
@@ -749,6 +824,12 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
 
         player1_health.setProgress(MAX_HP);
         player2_health.setProgress(MAX_HP);
+
+        player1_hp.setText("100");
+        player2_hp.setText("100");
+
+        checkIfSwitchProgressColor();
+
 
         quitDialog = new QuitActivity(MainActivity.this);
 
@@ -819,7 +900,6 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
                 updateStats(player2, currentSkill.getDamage(), DAMAGE);
             } else {
                 // Heal player 1
-                //TODO:check if switch back to player2.heal().getDamage (possible problem)
                 updateStats(player1, player1.heal().getDamage(), HEAL);
 
             }
@@ -829,8 +909,10 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
                 if (!isGameOver)
                     checkIfGameOver();
                 //Attacking again after finish or adding twice
-                if (!isGameOver) // if not over play AI
+                if (!isGameOver) { // if not over play AI
+                    hasAImademove = false;
                     holdGame();
+                }
             }
 
         }
@@ -858,7 +940,6 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
      */
     private void updateStats(Player player, int damage, int updateType) {
 
-        /** TODO: Display visual numbers in HP*/
         switch (player.getName()) {
             case PLAYER1:
                 if (updateType == DAMAGE) { // Damage player 1
@@ -888,7 +969,6 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
                     displayToast(player1.getName() + " deals " + damage + " damage!");
                 } else {
 
-                    //TODO: Healing for both of them
                     updateTurns(player2);
                     player2_health.setProgress(player2_health.getProgress() + damage);
                     player2.setHealth(player2_health.getProgress());
@@ -952,13 +1032,14 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
      * A method to create and show given dialog fragment
      */
     private void createDialogFragment(final Dialog dialog, final String val) {
-//        dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         dialog.show();
-        if (val.equals("exit"))
+        if (val.equals("exit")) {
             Log.d("pttt", "exit dialog was shown");
-
-
+        }
+        if (val.equals("gameOver")) {
+            isGameOverDialogCalled = true;
+        }
         int width = (int) (getResources().getDisplayMetrics().widthPixels * 0.55);
         int height = (int) (getResources().getDisplayMetrics().heightPixels * 0.55);
         dialog.getWindow().setLayout(width, height);
@@ -967,22 +1048,12 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
             @Override
             public void onDismiss(DialogInterface dialogInterface) {
                 //TODO: Switch case here
-                Log.d("pttt", "DIALOG WAS DISMISSED!");
                 /** If the dialog is an exit dialog*/
                 if (val.equals("exit")) {
                     isBackButtonPressed = false;
                     isQuitDialogCalled = false;
                     onResume();
                 }
-                /** If the dialog is a game over dialog*/
-                //TODO: Take care of these stuff
-                if (val.equals("gameOver")) {
-                    onStart();
-                }
-                if (val.equals("coin")) {
-                    onStart();
-                }
-
             }
         });
     }
@@ -1003,8 +1074,8 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
      * A method to display the game over dialog
      */
     public void onGameOver(Player winner) {
-        GameOverActivity win = new GameOverActivity(MainActivity.this, winner, gameMode);
-        createDialogFragment(win, "gameOver");
+        gameOverDialog = new GameOverActivity(MainActivity.this, winner, gameMode);
+//        createDialogFragment(gameOverDialog, "gameOver");
         Score temp = new Score(winner.getNumOfTurns());
         getWinnerLocation(winner, temp);
     }
@@ -1027,6 +1098,8 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
                         score.setLocation(tempLocation);
                         if (!top10ArraySaved)
                             updateTop10Array(winner, score);
+                        if (!isGameOverDialogCalled)
+                            createDialogFragment(gameOverDialog, "gameOver");
                     }
                 }
             });
@@ -1073,6 +1146,30 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
         Gson gson = new Gson();
         String gradeJson = gson.toJson(top10Scores);
         mySP.putString(MySP.KEYS.TOP_10_ARRAY, gradeJson);
+        Log.d("pttt", "Saved to sp");
+    }
+
+    /**
+     * A method to perform required OnGameOver operation
+     * Main menu
+     * Quit
+     * New Game
+     */
+    private void performRequiredOP() {
+        isGameOverDialogCalled = false;
+        switch (callbackResult) {
+            case MAIN_MENU:
+                finish();
+                Intent intent = new Intent(this, WelcomeActivity.class);
+                startActivity(intent);
+                break;
+            case QUIT_GAME:
+                System.exit(0);
+                break;
+            case PLAY_AGAIN:
+                initNewGame();
+                break;
+        }
     }
 
 
