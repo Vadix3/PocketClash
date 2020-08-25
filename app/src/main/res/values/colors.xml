@@ -8,4 +8,5 @@
     <color name="colorHeadLine">#00BFA5</color>
     <color name="black">#191919</color>
     <color name="colorTextColor">@android:color/secondary_text_light</color>
+    <color name="quitColor">#90D50000</color>
 </resources>

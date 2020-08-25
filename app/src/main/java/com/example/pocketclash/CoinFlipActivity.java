@@ -11,6 +11,8 @@ import android.view.animation.Animation;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+
 public class CoinFlipActivity extends Dialog {
 
     private Activity activity;
@@ -54,7 +56,9 @@ public class CoinFlipActivity extends Dialog {
     private void initViews() {
 
         player1Image = findViewById(R.id.ImageView01);
+        Glide.with(player1Image).load(R.drawable.player1_coin2).into(player1Image);
         player2Image = findViewById(R.id.ImageView02);
+        Glide.with(player2Image).load(R.drawable.player2_coin2).into(player2Image);
         player1Image.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 player1Image.setClickable(false);
@@ -129,12 +133,11 @@ public class CoinFlipActivity extends Dialog {
         public void onAnimationEnd(Animation animation) {
             final int startingPlayer;
             if (numOfRotations % 2 == 0) {
-                image2.setImageResource(R.drawable.player1_coin2);
+                Glide.with(image2).load(R.drawable.player1_coin2).into(image2);
                 startingPlayer = 1;
                 Toast.makeText(activity, "Player 1 starts!", Toast.LENGTH_SHORT).show();
             } else {
-                image2.setImageResource(R.drawable.player2_coin2);
-
+                Glide.with(image1).load(R.drawable.player2_coin2).into(image1);
                 startingPlayer = 2;
                 Toast.makeText(activity, "Player 2 starts!", Toast.LENGTH_SHORT).show();
             }

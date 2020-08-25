@@ -83,10 +83,17 @@ public class GameOverActivity extends Dialog implements View.OnClickListener {
             headLine.setText(winner.getName() + " has won in " + winner.getNumOfTurns() + " turns!");
         }
         background = findViewById(R.id.gameOver_LAY_mainLayout);
-        Glide.with(background).load(R.drawable.game_over_dialog).into(new CustomTarget<Drawable>() {
+        glideToBackground(background, R.drawable.game_over_dialog);
+    }
+
+    /**
+     * A method to insert image to background with glide
+     */
+    private void glideToBackground(final View target, int pictureID) {
+        Glide.with(target).load(pictureID).into(new CustomTarget<Drawable>() {
             @Override
             public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
-                background.setBackground(resource);
+                target.setBackground(resource);
             }
 
             @Override

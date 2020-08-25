@@ -13,6 +13,8 @@ import android.view.Window;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
+import com.bumptech.glide.Glide;
+
 public class GameModeActivity extends Dialog implements View.OnClickListener {
 
     private Context mContext;
@@ -40,9 +42,11 @@ public class GameModeActivity extends Dialog implements View.OnClickListener {
         vb = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
         mainLayout = findViewById(R.id.mode_LAY_mainLayout);
         soloImage = findViewById(R.id.mode_IMG_solo);
+        Glide.with(soloImage).load(R.drawable.solo_start_button).into(soloImage);
         vsAIImage = findViewById(R.id.mode_IMG_vsAI);
+        Glide.with(vsAIImage).load(R.drawable.vsai_start_button).into(vsAIImage);
         autoImage = findViewById(R.id.mode_IMG_auto);
-        background = findViewById(R.id.mode_IMG_background);
+        Glide.with(autoImage).load(R.drawable.auto_button).into(autoImage);
 
         soloImage.setOnClickListener(this);
         autoImage.setOnClickListener(this);

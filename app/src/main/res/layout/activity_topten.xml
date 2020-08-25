@@ -18,7 +18,6 @@
         android:layout_marginTop="110dp"
         android:layout_marginBottom="85dp" />
 
-    <!--TODO:Are you sure window-->
     <TextView
         android:id="@+id/top10_LBL_clearList"
         android:layout_width="wrap_content"

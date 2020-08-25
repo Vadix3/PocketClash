@@ -8,15 +8,18 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.location.LocationManager;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
-import android.view.Window;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -24,9 +27,13 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -37,15 +44,13 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 
-/**
- * TODO: **FIX OTHER RESOLUTION PROBLEMS
- * TODO: Remove all src stuff*********
- */
 public class MainActivity extends AppCompatActivity implements CallBackListener {
     /**
      * Views
      */
     RelativeLayout mainLayout;
+    RelativeLayout player1Stats;
+    RelativeLayout player2Stats;
     LinearLayout player2SkillsLayout;
 
     //ImageViews
@@ -84,6 +89,10 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
     private View.OnClickListener healClick;
     private View.OnClickListener volumeClick;
     private View.OnClickListener coinFlipClick;
+
+    /**
+     * Display stats on long click. Didnt work, enables the button
+     */
     private View.OnLongClickListener statsListener;
 
     /**
@@ -95,7 +104,8 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
     /**
      * Variables
      */
-    private static final int DAMAGE = 1;
+    private static final int LOW_DAMAGE = 0;
+    private static final int HIGH_DAMAGE = 1;
     private static final int HEAL = 2;
     private static final int MAX_HP = 100;
     private static final int SOLO = 0; // Part 1 of HW
@@ -109,12 +119,11 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
 
     private static final String PLAYER2 = "Player2";
     private static final String PLAYER1 = "Player1";
-    private int gameTheme;
+    private int gameTheme;// In construction
     private int gameMode; // AUTO, VS_AI, SOLO*/
     private int gameOverMode = 0; // MENU, QUIT, SOLO*/
     private int startingPlayer;
     private int callbackResult = 0;
-
 
     //Handlers
     private MediaPlayer mediaPlayer;
@@ -133,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
     private Player player2;
     private Player currentPlayer;
 
-    //Arraya
+    //Arrays
     private ArrayList<Skill> allSkills;
     private ArrayList<Score> top10Scores;
 
@@ -165,6 +174,8 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
      * Stop the handler
      */
     private void stopHandler() {
+        if (mediaPlayer.isPlaying())
+            mediaPlayer.pause();
         handler.removeCallbacksAndMessages(autoPlayRunnable);
         handler.removeCallbacksAndMessages(playAIRunnable);
         isHandlerRunning = false;
@@ -192,13 +203,12 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
     protected void onResume() {
         super.onResume();
         Log.d("pttt", "On resume");
-        if (!isQuitDialogCalled)
+        if (!isQuitDialogCalled && flipCoinButton.getVisibility() != View.VISIBLE)
             runHandlerIfNotRunning();
         if (isVolumeOn) {
             mediaPlayer.start();
         }
     }
-
 
     @Override
     protected void onStop() {
@@ -235,12 +245,6 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
         }
     }
 
-    /**
-     * 2. Winner fragment
-     * 3. Theme selection? Grid?
-     * 4. Limit moves? Damage?
-     * 5. Name input?
-     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.activity_main);
@@ -248,7 +252,6 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
         gameMode = getIntent().getIntExtra("GameType", 0);
         initAllSkills();
         initNewGame();
-
         super.onCreate(savedInstanceState);
     }
 
@@ -262,371 +265,87 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
         initViews();
         initListeners();
         initScores();
-        if (isVolumeOn) //TODO: Maybe do it on thread?
+        if (isVolumeOn && mediaPlayer.isPlaying() == false)
             playMusic();
         getGameMode();
     }
 
     /**
-     * A method to init the top 10 scores array from SP
+     * A method to initialize the widgets
      */
-    private void initScores() {
-        Gson gson = new Gson();
-        String top10String = mySP.getString(MySP.KEYS.TOP_10_ARRAY, "");
-        Type scoreType = new TypeToken<ArrayList<Score>>() {
-        }.getType();
-        top10Scores = gson.fromJson(top10String, scoreType); // get grades array from json
-        if (top10Scores != null) { // If there is something to load
-            System.out.println("Scores array: " + top10Scores.toString());
-        } else { // If there is nothing to load, init array
-            top10Scores = new ArrayList<Score>();
-        }
-    }
-
-    /**
-     * A method to initialize the total skills array (Database of skills)
-     * TODO: add inflatable skill details? display points?
-     * Name,Damage,Points,Type
-     */
-    private void initAllSkills() {
-        allSkills = new ArrayList<Skill>();
-        // Light skills
-        Skill punch = new Skill("Punch", 10, 7, 0);
-        Skill slap = new Skill("Slap", 10, 7, 0);
-        Skill spank = new Skill("Spank", 10, 7, 0);
-
-        // Heavy skills
-        Skill headButt = new Skill("Cut", 20, 5, 1);
-        Skill kick = new Skill("Kick", 20, 5, 1);
-        Skill charge = new Skill("Charge", 20, 5, 1);
-
-        // Heal skills
-        Skill meditate = new Skill("Heal", 10, 3, 2);
-        Skill drain = new Skill("Drain", 10, 3, 2);
-        Skill potion = new Skill("Potion", 10, 3, 2);
-
-        allSkills.add(punch);
-        allSkills.add(slap);
-        allSkills.add(spank);
-        allSkills.add(headButt);
-        allSkills.add(kick);
-        allSkills.add(charge);
-        allSkills.add(meditate);
-        allSkills.add(drain);
-        allSkills.add(potion);
-    }
-
-    /**
-     * A method to init players (HP,Name,Skills)
-     */
-    private void initPlayers() {
-        player1 = new Player(MAX_HP, PLAYER1);
-        player2 = new Player(MAX_HP, PLAYER2);
-        getPlayerSkills();
-    }
+    private void initViews() {
+        mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.god_suriya_bashar);
+        mediaPlayer.setLooping(true);
+        mainLayout = findViewById(R.id.main_LAY_mainLayout);
+        mainLayout.setClickable(true);
+        player1Stats = findViewById(R.id.main_LAY_player1_StatsLayout);
+        glideToBackground(player1Stats, R.drawable.health_bar);
+        player2Stats = findViewById(R.id.main_LAY_player2_StatsLayout);
+        glideToBackground(player2Stats, R.drawable.health_bar);
+        backgroundImage = findViewById(R.id.main_IMG_backGround);
+        backgroundImage.setScaleType(ImageView.ScaleType.FIT_XY);
+        Glide.with(backgroundImage).load(R.drawable.my_background_night).into(backgroundImage);
+        flipCoinButton = findViewById(R.id.main_IMG_flipcoin);
+        volumeButton = findViewById(R.id.main_IMG_volume);
+        player1_skill1 = findViewById(R.id.main_BTN_player1_skill1);
+        player1_skill1.setText(player1.lowSkill().getName());
+        player1_skill2 = findViewById(R.id.main_BTN_player1_skill2);
+        player1_skill2.setText(player1.highSkill().getName());
+        player1_skill3 = findViewById(R.id.main_BTN_player1_skill3);
+        player1_skill3.setText(player1.heal().getName());
+        player1_hp = findViewById(R.id.main_BAR_Player1_HealthPoings);
+        player2_skill1 = findViewById(R.id.main_BTN_player2_skill1);
+        player2_skill1.setText(player2.lowSkill().getName());
+        player2_skill2 = findViewById(R.id.main_BTN_player2_skill2);
+        player2_skill2.setText(player2.highSkill().getName());
+        player2_skill3 = findViewById(R.id.main_BTN_player2_skill3);
+        player2_skill3.setText(player2.heal().getName());
+        player2_hp = findViewById(R.id.main_BAR_Player2_HealthPoings);
 
 
-    /**
-     * Randomize player skills
-     */
-    private void getPlayerSkills() {
-
-        Skill[] player1Skills = new Skill[3];
-        Skill[] player2Skills = new Skill[3];
-
-        // Low damage
-        player1Skills[0] = new Skill(allSkills.get(randomIntFromInterval(0, 2)));
-        player2Skills[0] = new Skill(allSkills.get(randomIntFromInterval(0, 2)));
-
-        //High damage
-        player1Skills[1] = new Skill(allSkills.get(randomIntFromInterval(3, 5)));
-        player2Skills[1] = new Skill(allSkills.get(randomIntFromInterval(3, 5)));
-
-        //Heal
-        player1Skills[2] = new Skill(allSkills.get(randomIntFromInterval(6, 8)));
-        player2Skills[2] = new Skill(allSkills.get(randomIntFromInterval(6, 8)));
-
-        player1.setSkills(player1Skills);
-        player2.setSkills(player2Skills);
-    }
-
-    /**
-     * Get random numbers from given interval
-     */
-    private int randomIntFromInterval(int min, int max) { // min and max included
-        return (int) Math.floor(Math.random() * (max - min + 1) + min);
-    }
-
-    /**
-     * A method to get the game mode as follows:
-     * 0 = solo
-     * 1 = vs ai
-     * 2 = online (in future)
-     */
-    private void getGameMode() {
-        Log.d("pttt", "Game mode: " + gameMode);
-        switch (gameMode) {
-            case SOLO:
-                newSoloGame();
+        player1_name = findViewById(R.id.main_LBL_player1_Stats_name);
+        player2_name = findViewById(R.id.main_LBL_player2_Stats_name);
+        switch (gameTheme) { // Currently always BASHAR, future themes will follow
+            case BASHAR:
+                player1_name.setText("Bashar");
+                player2_name.setText("Jihadi");
                 break;
-            case VS_AI:
-                newVsAIGame();
-                break;
-            case AUTO:
-                newAutoGame();
-                break;
+            default:
+                player1_name.setText("Player 1");
+                player2_name.setText("Player 2");
         }
-    }
 
 
-    /**
-     * A method to play background music
-     */
-    private void playMusic() {
-        mediaPlayer.start();
-    }
+        player1_health = findViewById(R.id.main_BAR_Player1_progressBar);
+        player2_health = findViewById(R.id.main_BAR_Player2_progressBar);
 
-    /**
-     * A method to start a new solo game
-     */
-    private void newSoloGame() {
-        holdPlayer(PLAYER2);
-        releasePlayer(PLAYER1);
-    }
-
-    /**
-     * A method to start a new AUTO game (HW part 2)
-     * method continues after callback returns , getStartingAutoPlayer method(
-     */
-    private void newAutoGame() {
-        holdPlayer(PLAYER1);
-        holdPlayer(PLAYER2);
-        flipCoinButton.setVisibility(View.VISIBLE);
-    }
-
-    /**
-     * A CallBack method to get data from fragments
-     */
-    @Override
-    public void getCallback(int result) {
-        Vibrator vb = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-
-        /** See who is the starting player, and init game accordingly*/
-        if (result == 1 || result == 2) { // Coming from coinFlip
-            vb.vibrate(400);
-            startingPlayer = result;
-            if (result == 1) {
-                currentPlayer = player1;
-                holdPlayer(PLAYER2);
-                releasePlayer(PLAYER1);
-            } else {
-                currentPlayer = player2;
-                holdPlayer(PLAYER1);
-                releasePlayer(PLAYER2);
-            }
-            makeStupidAIPlay();
-        }
-        /** See what is the return result of gameOver menu. MAIN_MENU / AGAIN / QUIT*/
-        else {
-            callbackResult = result;
-            performRequiredOP();
-
-//            if (player1.getHealth() == 0) { // Player 2 has won
-//                Score temp = new Score(player2.getNumOfTurns());
-//                getWinnerLocation(player2, temp);
-//            } else { // Player 1 has won
-//                Score temp = new Score(player1.getNumOfTurns());
-//                getWinnerLocation(player1, temp);
-//            }
-        }
-    }
-
-
-    /**
-     * Make random AI move and wait
-     */
-    private void makeStupidAIPlay() {
-        player1_skill1.setClickable(false);
-        player1_skill2.setClickable(false);
-        player1_skill3.setClickable(false);
-
-        if (!isGameOver)
-            checkIfGameOver();
-        int randomNum = randomIntFromInterval(0, 2);
-        final Player damagedPlayer;
-        if (currentPlayer.getName() == PLAYER1)
-            damagedPlayer = player2;
-        else damagedPlayer = player1;
-
-        final Skill randomSKill = currentPlayer.getSkills()[randomNum];
-
-        autoPlayRunnable = new Runnable() {
-            @Override
-            public void run() {
-                if (!isGameOver) {
-                    dealDamage(damagedPlayer, randomSKill);
-                    if (currentPlayer.getName() == PLAYER1) {
-                        currentPlayer = player2;
-                    } else currentPlayer = player1;
-                    makeStupidAIPlay();
-                }
-            }
-        };
-        handler.postDelayed(autoPlayRunnable, 1000);
-    }
-
-    /**
-     * A method to start a new vsAI game
-     */
-    private void newVsAIGame() {
-        player1_name.setText("Player");
-        player2_name.setText("Comp");
-        player2SkillsLayout = findViewById(R.id.main_LAY_player2_SkillsLayout);
-        selectStartingPlayer();
-        if (startingPlayer == 2) { // AI goes first
-            playAI();
-        }
-    }
-
-    /**
-     * A method to make AI move
-     */
-    private void playAI() {
-        /** Insert AI move here*/
-        if (gameMode == VS_AI)
-            makeSmartAIPlay();
-    }
-
-    /**
-     * A method to make AI move
-     * Try to win, apply logic
-     */
-    private void makeSmartAIPlay() {
-        if (player2.getHealth() + player2.heal().getDamage() < MAX_HP && // Try to heal first if possible
-                checkIfAttackPossible(player2.heal())) {
-            dealDamage(player1, player1.heal());
-
-        } else { // No need to heal, try to play strong attack
-            if (checkIfAttackPossible(player2.highSkill())) { // Try to go for max damage first
-                dealDamage(player1, player2.highSkill());
-            } else { // Strong attack is not possible
-                if (checkIfAttackPossible(player2.lowSkill())) { // Try to play low skill
-                    dealDamage(player1, player2.lowSkill());
-                } else { // No points available
-                    displayToast("AI has no more skills available");
-                }
-            }
-        }
-        hasAImademove = true;
-    }
-
-    /**
-     * A method to select the starting player
-     */
-    private void selectStartingPlayer() {
-        player1.setHealth(MAX_HP);
-        player2.setHealth(MAX_HP);
         player1_health.setProgress(MAX_HP);
         player2_health.setProgress(MAX_HP);
 
-        switch ((int) Math.floor(Math.random() * 2) + 1) {
-            case 1: // Human goes first
-                holdPlayer(PLAYER2);
-                releasePlayer(PLAYER1);
-                startingPlayer = 1;
-                break;
-            case 2:
-                startingPlayer = 2;
-                holdPlayer(PLAYER1);
-                releasePlayer(PLAYER2);
-                break;
+        player1_hp.setText("100");
+        player2_hp.setText("100");
 
-        }
-    }
+        checkIfSwitchProgressColor();
+        quitDialog = new QuitActivity(MainActivity.this);
 
-    /**
-     * A method to release current player
-     */
-    private void releasePlayer(String playerName) {
-        switch (playerName) {
-            case PLAYER1: // Releasing player 1
-                player1_skill1.setBackground(getDrawable(R.drawable.skill_button));
-                player1_skill2.setBackground(getDrawable(R.drawable.heavy_attack_button));
-                player1_skill3.setBackground(getDrawable(R.drawable.heal_button));
-                player1_skill1.setClickable(true);
-                player1_skill2.setClickable(true);
-                player1_skill3.setClickable(true);
-                break;
-            case PLAYER2: // Releasing plyer2
-                player2_skill1.setBackground(getDrawable(R.drawable.skill_button));
-                player2_skill2.setBackground(getDrawable(R.drawable.heavy_attack_button));
-                player2_skill3.setBackground(getDrawable(R.drawable.heal_button));
-                player2_skill1.setClickable(true);
-                player2_skill2.setClickable(true);
-                player2_skill3.setClickable(true);
-                break;
-        }
-    }
-
-    /**
-     * A method to hold given player
-     */
-    private void holdPlayer(String playerName) {
-        switch (playerName) {
-            case PLAYER1: // Holding player 1
-                player1_skill1.setBackground(getDrawable(R.drawable.unavailable_skill));
-                player1_skill2.setBackground(getDrawable(R.drawable.unavailable_skill));
-                player1_skill3.setBackground(getDrawable(R.drawable.unavailable_skill));
-                player1_skill1.setClickable(false);
-                player1_skill2.setClickable(false);
-                player1_skill3.setClickable(false);
-                break;
-            case PLAYER2:
-                player2_skill1.setBackground(getDrawable(R.drawable.unavailable_skill));
-                player2_skill2.setBackground(getDrawable(R.drawable.unavailable_skill));
-                player2_skill3.setBackground(getDrawable(R.drawable.unavailable_skill));
-                player2_skill1.setClickable(false);
-                player2_skill2.setClickable(false);
-                player2_skill3.setClickable(false);
-                break;
-        }
-    }
-
-
-    /**
-     * A method to finish the game
-     */
-    private void gameOver() {
-        player2_skill1.setClickable(false);
-        player2_skill2.setClickable(false);
-        player2_skill3.setClickable(false);
-        player1_skill1.setClickable(false);
-        player1_skill2.setClickable(false);
-        player1_skill3.setClickable(false);
-
-        player2_skill1.setBackground(getDrawable(R.drawable.unavailable_skill));
-        player2_skill2.setBackground(getDrawable(R.drawable.unavailable_skill));
-        player2_skill3.setBackground(getDrawable(R.drawable.unavailable_skill));
-        player1_skill1.setBackground(getDrawable(R.drawable.unavailable_skill));
-        player1_skill2.setBackground(getDrawable(R.drawable.unavailable_skill));
-        player1_skill3.setBackground(getDrawable(R.drawable.unavailable_skill));
-
-        if (player1_health.getProgress() <= 0) {
-            player1.setHealth(0);
-            onGameOver(player2);
+        player1_picture = findViewById(R.id.main_IMG_player1_picture);
+        player2_picture = findViewById(R.id.main_IMG_player2_picture);
+        gameTheme = BASHAR;
+        if (gameTheme == BASHAR) {
+            Glide.with(player1_picture).load(R.drawable.bashar2).into(player1_picture);
+            Glide.with(player2_picture).load(R.drawable.jihadi_player).into(player2_picture);
         } else {
-            onGameOver(player1);
-            player2.setHealth(0);
+            Glide.with(player1_picture).load(R.drawable.player_demo_circle);
+            Glide.with(player2_picture).load(R.drawable.player_demo_circle);
         }
     }
 
     /**
      * A method to init the listeners as follows:
-     * Weak skill click (-10)
-     * Medium skill click (-15)
-     * Strong skill click (-20)
+     * Weak attack skill click
+     * Medium attac skill click
+     * Heal skill click
      */
-
     private void initListeners() {
 
         /** Weak skill*/
@@ -673,6 +392,7 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
                 }
             }
         };
+        /**Volume button*/
         volumeClick = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -695,7 +415,7 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
                 flipCoinButton.setVisibility(View.INVISIBLE);
             }
         };
-
+        /** Display the stats of the given attack - ** Not in use **/
         statsListener = new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
@@ -710,7 +430,6 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
                 return true;
             }
         };
-        //TODO: Choose player grid by theme
         player1_skill1.setOnClickListener(weakClick);
         player1_skill2.setOnClickListener(strongClick);
         player1_skill3.setOnClickListener(healClick);
@@ -723,6 +442,346 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
         }
         volumeButton.setOnClickListener(volumeClick);
         handler = new Handler();
+    }
+
+    /**
+     * A method to init the top 10 scores array from SP
+     */
+    private void initScores() {
+        Gson gson = new Gson();
+        String top10String = mySP.getString(MySP.KEYS.TOP_10_ARRAY, "");
+        Type scoreType = new TypeToken<ArrayList<Score>>() {
+        }.getType();
+        top10Scores = gson.fromJson(top10String, scoreType); // get grades array from json
+        if (top10Scores != null) { // If there is something to load
+            System.out.println("Scores array: " + top10Scores.toString());
+        } else { // If there is nothing to load, init array
+            top10Scores = new ArrayList<Score>();
+        }
+    }
+
+    /**
+     * A method to initialize the total skills array (Database of skills)
+     * TODO: add inflatable skill details? display points?
+     * Name,Damage,Points,Type
+     */
+    private void initAllSkills() {
+        allSkills = new ArrayList<Skill>();
+        // Light skills
+        Skill punch = new Skill("Punch", 10, 7, LOW_DAMAGE);
+        Skill slap = new Skill("Slap", 10, 7, LOW_DAMAGE);
+        Skill spank = new Skill("Spank", 10, 7, LOW_DAMAGE);
+
+        // Heavy skills
+        Skill headButt = new Skill("Cut", 20, 5, HIGH_DAMAGE);
+        Skill kick = new Skill("Kick", 20, 5, HIGH_DAMAGE);
+        Skill charge = new Skill("Charge", 20, 5, HIGH_DAMAGE);
+
+        // Heal skills
+        Skill meditate = new Skill("Heal", 10, 3, HEAL);
+        Skill drain = new Skill("Drain", 10, 3, HEAL);
+        Skill potion = new Skill("Potion", 10, 3, HEAL);
+
+        allSkills.add(punch);
+        allSkills.add(slap);
+        allSkills.add(spank);
+        allSkills.add(headButt);
+        allSkills.add(kick);
+        allSkills.add(charge);
+        allSkills.add(meditate);
+        allSkills.add(drain);
+        allSkills.add(potion);
+    }
+
+    /**
+     * A method to init players (HP,Name,Skills)
+     */
+    private void initPlayers() {
+        player1 = new Player(MAX_HP, PLAYER1);
+        player2 = new Player(MAX_HP, PLAYER2);
+        getPlayerSkills();
+    }
+
+    /**
+     * Randomize player skills
+     */
+    private void getPlayerSkills() {
+
+        Skill[] player1Skills = new Skill[3];
+        Skill[] player2Skills = new Skill[3];
+
+        // Low damage
+        player1Skills[0] = new Skill(allSkills.get(randomIntFromInterval(0, 2)));
+        player2Skills[0] = new Skill(allSkills.get(randomIntFromInterval(0, 2)));
+
+        //High damage
+        player1Skills[1] = new Skill(allSkills.get(randomIntFromInterval(3, 5)));
+        player2Skills[1] = new Skill(allSkills.get(randomIntFromInterval(3, 5)));
+
+        //Heal
+        player1Skills[2] = new Skill(allSkills.get(randomIntFromInterval(6, 8)));
+        player2Skills[2] = new Skill(allSkills.get(randomIntFromInterval(6, 8)));
+
+        player1.setSkills(player1Skills);
+        player2.setSkills(player2Skills);
+    }
+
+    /**
+     * Get random numbers from given interval
+     */
+    private int randomIntFromInterval(int min, int max) { // min and max included
+        return (int) Math.floor(Math.random() * (max - min + 1) + min);
+    }
+
+    /**
+     * A method to get the game mode as follows:
+     * 0 = solo
+     * 1 = vs ai
+     * 2 = auto
+     */
+    private void getGameMode() {
+        switch (gameMode) {
+            case SOLO:
+                newSoloGame();
+                break;
+            case VS_AI:
+                newVsAIGame();
+                break;
+            case AUTO:
+                newAutoGame();
+                break;
+        }
+    }
+
+    /**
+     * A method to play background music
+     */
+    private void playMusic() {
+        mediaPlayer.start();
+    }
+
+    /**
+     * A method to start a new solo game
+     */
+    private void newSoloGame() {
+        holdPlayer(PLAYER2);
+        releasePlayer(PLAYER1);
+    }
+
+    /**
+     * A method to start a new AUTO game (HW part 2)
+     */
+    private void newAutoGame() {
+        holdPlayer(PLAYER1);
+        holdPlayer(PLAYER2);
+        flipCoinButton.setVisibility(View.VISIBLE);
+        Glide.with(flipCoinButton).load(R.drawable.flip_start).into(flipCoinButton);
+    }
+
+    /**
+     * A CallBack method to get data from fragments
+     */
+    @Override
+    public void getCallback(int result) {
+        Vibrator vb = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+
+        /** See who is the starting player, and init game accordingly*/
+        if (result == 1 || result == 2) { // Coming from coinFlip
+            vb.vibrate(400);
+            startingPlayer = result;
+            if (result == 1) {
+                currentPlayer = player1;
+                holdPlayer(PLAYER2);
+                releasePlayer(PLAYER1);
+            } else {
+                currentPlayer = player2;
+                holdPlayer(PLAYER1);
+                releasePlayer(PLAYER2);
+            }
+            makeStupidAIPlay();
+        }
+        /** See what is the return result of gameOver menu. MAIN_MENU / AGAIN / QUIT*/
+        else {
+            callbackResult = result;
+            performRequiredOP();
+        }
+    }
+
+    /**
+     * Make random AI move and wait
+     */
+    private void makeStupidAIPlay() {
+        player1_skill1.setClickable(false);
+        player1_skill2.setClickable(false);
+        player1_skill3.setClickable(false);
+
+        if (!isGameOver)
+            checkIfGameOver();
+        int randomNum = randomIntFromInterval(0, 2);
+        final Player damagedPlayer;
+        if (currentPlayer.getName() == PLAYER1)
+            damagedPlayer = player2;
+        else damagedPlayer = player1;
+
+        final Skill randomSKill = currentPlayer.getSkills()[randomNum];
+
+        autoPlayRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (!isGameOver) {
+                    dealDamage(damagedPlayer, randomSKill);
+                    if (currentPlayer.getName() == PLAYER1) {
+                        currentPlayer = player2;
+                    } else currentPlayer = player1;
+                    makeStupidAIPlay();
+                }
+            }
+        };
+        handler.postDelayed(autoPlayRunnable, 1000);
+    }
+
+    /**
+     * A method to start a new vsAI game
+     */
+    private void newVsAIGame() {
+        player2SkillsLayout = findViewById(R.id.main_LAY_player2_SkillsLayout);
+        selectStartingPlayer();
+        if (startingPlayer == 2) { // AI goes first
+            playAI();
+        }
+    }
+
+    /**
+     * A method to make AI move
+     */
+    private void playAI() {
+        /** Insert AI move here*/
+        if (gameMode == VS_AI)
+            makeSmartAIPlay();
+    }
+
+    /**
+     * A method to make AI move
+     * Try to win, apply logic
+     */
+    private void makeSmartAIPlay() {
+        if (player2.getHealth() + player2.heal().getDamage() < MAX_HP && // Try to heal first if possible
+                checkIfAttackPossible(player2.heal())) {
+            dealDamage(player1, player1.heal());
+
+        } else { // No need to heal, try to play strong attack
+            if (checkIfAttackPossible(player2.highSkill())) { // Try to go for max damage first
+                dealDamage(player1, player2.highSkill());
+            } else { // Strong attack is not possible
+                if (checkIfAttackPossible(player2.lowSkill())) { // Try to play low skill
+                    dealDamage(player1, player2.lowSkill());
+                } else { // No points available
+                    displayToast("AI has no more skills available");
+                }
+            }
+        }
+        hasAImademove = true;
+    }
+
+    /**
+     * A method to randomly select the starting player
+     */
+    private void selectStartingPlayer() {
+        player1.setHealth(MAX_HP);
+        player2.setHealth(MAX_HP);
+        player1_health.setProgress(MAX_HP);
+        player2_health.setProgress(MAX_HP);
+
+        switch ((int) Math.floor(Math.random() * 2) + 1) {
+            case 1: // Human goes first
+                holdPlayer(PLAYER2);
+                releasePlayer(PLAYER1);
+                startingPlayer = 1;
+                break;
+            case 2:
+                startingPlayer = 2;
+                holdPlayer(PLAYER1);
+                releasePlayer(PLAYER2);
+                break;
+        }
+    }
+
+    /**
+     * A method to release current player
+     */
+    private void releasePlayer(String playerName) {
+        switch (playerName) {
+            case PLAYER1: // Releasing player 1
+                glideToBackground(player1_skill1, R.drawable.skill_button);
+                glideToBackground(player1_skill2, R.drawable.heavy_attack_button);
+                glideToBackground(player1_skill3, R.drawable.heal_button);
+
+                player1_skill1.setClickable(true);
+                player1_skill2.setClickable(true);
+                player1_skill3.setClickable(true);
+                break;
+            case PLAYER2: // Releasing player2
+                glideToBackground(player2_skill1, R.drawable.skill_button);
+                glideToBackground(player2_skill2, R.drawable.heavy_attack_button);
+                glideToBackground(player2_skill3, R.drawable.heal_button);
+                player2_skill1.setClickable(true);
+                player2_skill2.setClickable(true);
+                player2_skill3.setClickable(true);
+                break;
+        }
+    }
+
+    /**
+     * A method to hold given player
+     */
+    private void holdPlayer(String playerName) {
+        switch (playerName) {
+            case PLAYER1: // Holding player 1
+                glideToBackground(player1_skill1, R.drawable.unavailable_skill);
+                glideToBackground(player1_skill2, R.drawable.unavailable_skill);
+                glideToBackground(player1_skill3, R.drawable.unavailable_skill);
+
+                player1_skill1.setClickable(false);
+                player1_skill2.setClickable(false);
+                player1_skill3.setClickable(false);
+                break;
+            case PLAYER2:
+                glideToBackground(player2_skill1, R.drawable.unavailable_skill);
+                glideToBackground(player2_skill2, R.drawable.unavailable_skill);
+                glideToBackground(player2_skill3, R.drawable.unavailable_skill);
+
+                player2_skill1.setClickable(false);
+                player2_skill2.setClickable(false);
+                player2_skill3.setClickable(false);
+                break;
+        }
+    }
+
+    /**
+     * A method to hold the players, and see who won
+     */
+    private void gameOver() {
+        player2_skill1.setClickable(false);
+        player2_skill2.setClickable(false);
+        player2_skill3.setClickable(false);
+        player1_skill1.setClickable(false);
+        player1_skill2.setClickable(false);
+        player1_skill3.setClickable(false);
+
+        glideToBackground(player2_skill1, R.drawable.unavailable_skill);
+        glideToBackground(player2_skill2, R.drawable.unavailable_skill);
+        glideToBackground(player2_skill3, R.drawable.unavailable_skill);
+        glideToBackground(player1_skill1, R.drawable.unavailable_skill);
+        glideToBackground(player1_skill2, R.drawable.unavailable_skill);
+        glideToBackground(player1_skill3, R.drawable.unavailable_skill);
+
+        if (player1_health.getProgress() <= 0) {
+            player1.setHealth(0);
+            onGameOver(player2);
+        } else {
+            onGameOver(player1);
+            player2.setHealth(0);
+        }
     }
 
     /**
@@ -749,7 +808,7 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
     }
 
     /**
-     * A method to flip the coin to decide starting player (HW part2)
+     * A method to flip the coin to decide starting player
      */
     private void flipCoinToStart() {
         CoinFlipActivity dialog = new CoinFlipActivity(MainActivity.this);
@@ -762,9 +821,7 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
      * A method to check if attack is possible (enough points)
      */
     private boolean checkIfAttackPossible(Skill skill) {
-
         if (skill.getPoints() > 0) {
-
             /** Not reducing the number of points for AUTO mode*/
             if (gameMode != AUTO) {
                 skill.setPoints(skill.getPoints() - 1);
@@ -773,91 +830,6 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
         } else {
             displayToast("Not enough points!");
             return false;
-        }
-    }
-
-    /**
-     * A method to initialize the widgets
-     */
-    private void initViews() {
-        mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.god_suriya_bashar);
-        mediaPlayer.setLooping(true);
-        mainLayout = findViewById(R.id.main_LAY_mainLayout);
-        mainLayout.setClickable(true);
-        backgroundImage = findViewById(R.id.main_IMG_backGround);
-        backgroundImage.setScaleType(ImageView.ScaleType.FIT_XY);
-        Glide.with(backgroundImage).load(randomizeBackground()).into(backgroundImage);
-        flipCoinButton = findViewById(R.id.main_IMG_flipcoin);
-        volumeButton = findViewById(R.id.welcome_IMG_menu);
-
-        player1_skill1 = findViewById(R.id.main_BTN_player1_skill1);
-        player1_skill1.setText(player1.lowSkill().getName());
-        player1_skill2 = findViewById(R.id.main_BTN_player1_skill2);
-        player1_skill2.setText(player1.highSkill().getName());
-        player1_skill3 = findViewById(R.id.main_BTN_player1_skill3);
-        player1_skill3.setText(player1.heal().getName());
-        player1_hp = findViewById(R.id.main_BAR_Player1_HealthPoings);
-        player2_skill1 = findViewById(R.id.main_BTN_player2_skill1);
-        player2_skill1.setText(player2.lowSkill().getName());
-        player2_skill2 = findViewById(R.id.main_BTN_player2_skill2);
-        player2_skill2.setText(player2.highSkill().getName());
-        player2_skill3 = findViewById(R.id.main_BTN_player2_skill3);
-        player2_skill3.setText(player2.heal().getName());
-        player2_hp = findViewById(R.id.main_BAR_Player2_HealthPoings);
-
-
-        player1_name = findViewById(R.id.main_LBL_player1_Stats_name);
-        player2_name = findViewById(R.id.main_LBL_player2_Stats_name);
-        switch (gameTheme) {
-            case BASHAR:
-                player1_name.setText("Bashar");
-                player2_name.setText("Jihadi");
-                break;
-            default:
-                player1_name.setText("Player 1");
-                player2_name.setText("Player 2");
-        }
-
-
-        player1_health = findViewById(R.id.main_BAR_Player1_progressBar);
-        player2_health = findViewById(R.id.main_BAR_Player2_progressBar);
-
-        player1_health.setProgress(MAX_HP);
-        player2_health.setProgress(MAX_HP);
-
-        player1_hp.setText("100");
-        player2_hp.setText("100");
-
-        checkIfSwitchProgressColor();
-
-
-        quitDialog = new QuitActivity(MainActivity.this);
-
-        player1_picture = findViewById(R.id.main_IMG_player1_picture);
-        player2_picture = findViewById(R.id.main_IMG_player2_picture);
-        gameTheme = BASHAR;
-        if (gameTheme == BASHAR) {
-            Glide.with(player1_picture).load(R.drawable.bashar2).into(player1_picture);
-            Glide.with(player2_picture).load(R.drawable.jihadi_player).into(player2_picture);
-        } else {
-            Glide.with(player1_picture).load(R.drawable.player_demo_circle);
-            Glide.with(player2_picture).load(R.drawable.player_demo_circle);
-        }
-    }
-
-    /**
-     * A method to choose the background randomly
-     */
-    private int randomizeBackground() {
-        switch ((int) Math.floor(Math.random() * 3) + 1) {
-            case 1:
-                return R.drawable.background_game_day2;
-            case 2:
-                return R.drawable.background_game_afternoon2;
-            case 3:
-                return R.drawable.background_game_night2;
-            default:
-                return 1;
         }
     }
 
@@ -876,14 +848,10 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
      * A function to deal given damage to given player
      */
     private void dealDamage(final Player damagedPlayer, final Skill currentSkill) {
-        /** TODO: 1. Use thread
-         *        2. Deal adjusted damage
-         */
-
         if (damagedPlayer.equals(player1)) { // Damage player 1 (AI MOVE)
             if (currentSkill.getType() != HEAL) {
                 // Deal damage to player 1
-                updateStats(player1, currentSkill.getDamage(), DAMAGE);
+                updateStats(player1, currentSkill.getDamage(), HIGH_DAMAGE);
 
             } else {
                 // Heal player 2
@@ -897,7 +865,7 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
         } else { // Damage player 2
             if (currentSkill.getType() != HEAL) {
                 // Deal damage to player 2
-                updateStats(player2, currentSkill.getDamage(), DAMAGE);
+                updateStats(player2, currentSkill.getDamage(), HIGH_DAMAGE);
             } else {
                 // Heal player 1
                 updateStats(player1, player1.heal().getDamage(), HEAL);
@@ -922,7 +890,7 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
     }
 
     /**
-     * A method to hold the game to simulate thinking
+     * A method to hold the game to simulate thinking (for VS_AI mode)
      */
     private void holdGame() {
         playAIRunnable = new Runnable() {
@@ -942,7 +910,7 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
 
         switch (player.getName()) {
             case PLAYER1:
-                if (updateType == DAMAGE) { // Damage player 1
+                if (updateType == HIGH_DAMAGE) { // Damage player 1
                     updateTurns(player2); // Player 2 dealt damage
                     player1_health.setProgress(player1_health.getProgress() - damage);
                     player1.setHealth(player1_health.getProgress());
@@ -962,7 +930,7 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
 
                 break;
             case PLAYER2:
-                if (updateType == DAMAGE) { // Damage player 2
+                if (updateType == HIGH_DAMAGE) { // Damage player 2
                     updateTurns(player1); // Player 1 dealt damage
                     player2_health.setProgress(player2_health.getProgress() - damage);
                     player2.setHealth(player2_health.getProgress());
@@ -984,10 +952,9 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
     }
 
     /**
-     * Update number of turnes
+     * Update number of turns
      */
     private void updateTurns(Player player) {
-
         if (gameMode != VS_AI) { // if not vs AI update
             player.setNumOfTurns(player.getNumOfTurns() + 1);
         } else {
@@ -1047,7 +1014,6 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialogInterface) {
-                //TODO: Switch case here
                 /** If the dialog is an exit dialog*/
                 if (val.equals("exit")) {
                     isBackButtonPressed = false;
@@ -1059,7 +1025,7 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
     }
 
     /**
-     * Method to ask for exit when backPress
+     * Method to pause game on back press
      */
     @Override
     public void onBackPressed() {
@@ -1075,9 +1041,10 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
      */
     public void onGameOver(Player winner) {
         gameOverDialog = new GameOverActivity(MainActivity.this, winner, gameMode);
-//        createDialogFragment(gameOverDialog, "gameOver");
         Score temp = new Score(winner.getNumOfTurns());
-        getWinnerLocation(winner, temp);
+        if (!top10ArraySaved) {
+            getWinnerLocation(winner, temp);
+        }
     }
 
     /**
@@ -1096,19 +1063,41 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
                         Double lon = location.getLongitude();
                         MyLocation tempLocation = new MyLocation(lat, lon);
                         score.setLocation(tempLocation);
-                        if (!top10ArraySaved)
-                            updateTop10Array(winner, score);
-                        if (!isGameOverDialogCalled)
-                            createDialogFragment(gameOverDialog, "gameOver");
+
+                    } else { // Could not determine location
+                        Log.d("pttt", "Could not determine location");
+                        displayToast("Could not determine location");
+                        score.setLocation(new MyLocation(0d, 0d));
                     }
+                    if (!top10ArraySaved)
+                        updateTop10Array(winner, score);
+                    if (!isGameOverDialogCalled)
+                        createDialogFragment(gameOverDialog, "gameOver");
                 }
             });
 
         } else { // Request permission from user
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     1);
+            mediaPlayer.stop();
+            getWinnerLocation(winner, score);
         }
+    }
 
+    /**
+     * A method to check if location is enabled. ** Not in use
+     **/
+    public static Boolean isLocationEnabled(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            // This is new method provided in API 28
+            LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+            return lm.isLocationEnabled();
+        } else {
+            // This is Deprecated in API 28
+            int mode = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE,
+                    Settings.Secure.LOCATION_MODE_OFF);
+            return (mode != Settings.Secure.LOCATION_MODE_OFF);
+        }
     }
 
     /**
@@ -1151,6 +1140,7 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
 
     /**
      * A method to perform required OnGameOver operation
+     * after receiving callback from gameOver dialog
      * Main menu
      * Quit
      * New Game
@@ -1170,6 +1160,22 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
                 initNewGame();
                 break;
         }
+    }
+
+    /**
+     * A method to insert image to view background with glide
+     */
+    private void glideToBackground(final View target, int pictureID) {
+        Glide.with(target).load(pictureID).into(new CustomTarget<Drawable>() {
+            @Override
+            public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
+                target.setBackground(resource);
+            }
+
+            @Override
+            public void onLoadCleared(@Nullable Drawable placeholder) {
+            }
+        });
     }
 
 

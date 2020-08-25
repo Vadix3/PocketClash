@@ -2,16 +2,31 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/welcome_LAY_mainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".WelcomeActivity"
-    android:id="@+id/welcome_LAY_mainLayout">
-    <ImageView
-        android:id="@+id/welcome_IMG_menu"
+    tools:context=".WelcomeActivity">
+
+    <TextView
+        android:id="@+id/welcome_LBL_quit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="5dp"
-        android:src="@drawable/ic_baseline_info_24" />
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginTop="5dp"
+        android:layout_marginRight="10dp"
+        android:fontFamily="@font/showg"
+        android:text="Quit"
+        android:textColor="@color/quitColor"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <ImageView
+        android:id="@+id/welcome_IMG_about"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp" />
 
     <ImageView
         android:id="@+id/welcome_IMG_title"
@@ -23,8 +38,8 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
         android:layout_below="@+id/welcome_IMG_title"
+        android:layout_centerHorizontal="true"
         android:layout_marginTop="5dp">
 
         <ImageView
@@ -34,8 +49,8 @@
             android:layout_below="@id/welcome_IMG_title"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="50dp"
-            android:foreground="?attr/selectableItemBackground"
-            android:layout_marginRight="5dp"/>
+            android:layout_marginRight="5dp"
+            android:foreground="?attr/selectableItemBackground" />
 
         <ImageView
             android:id="@+id/welcome_IMG_top10"
@@ -43,9 +58,9 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/welcome_IMG_title"
             android:layout_centerHorizontal="true"
+            android:layout_marginLeft="5dp"
             android:layout_marginTop="50dp"
-            android:foreground="?attr/selectableItemBackground"
-            android:layout_marginLeft="5dp"/>
+            android:foreground="?attr/selectableItemBackground" />
 
     </LinearLayout>
 

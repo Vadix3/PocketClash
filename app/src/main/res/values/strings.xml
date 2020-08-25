@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">Pocket Clash</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="google_maps_API_key">AIzaSyCpyeXSoqTXLo3flbRIABxPmuTu_qgKR_I</string>
 
 </resources>
