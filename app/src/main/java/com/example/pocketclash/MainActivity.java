@@ -30,6 +30,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
@@ -133,6 +135,9 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
 
     //Location
     FusedLocationProviderClient fusedLocationProviderClient;
+    private static final String FINE_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION;
+    private static final String COURSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
+
 
     //Shared prefs
     MySP mySP;
@@ -1051,6 +1056,7 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
      * A method to get the location of winning player
      */
     private void getWinnerLocation(final Player winner, final Score score) {
+
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         if (getApplicationContext().checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) { // If user gave permission

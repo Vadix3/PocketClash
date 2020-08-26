@@ -1,5 +1,6 @@
 package com.example.pocketclash;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
@@ -18,6 +19,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -30,8 +32,11 @@ import java.util.zip.Inflater;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
 
-    Context context;
-    ArrayList<Score> scores;
+    private Context context;
+    private ArrayList<Score> scores;
+    public static final String TAG = "pttt";
+    private static final int ERROR_DIALOG_REQUEST = 9001;
+
 
     public RecyclerViewAdapter(Context context, ArrayList<Score> scores) {
         this.context = context;
@@ -56,10 +61,12 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         holder.displayLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(view.getContext(), "I will display the location of item " +
-                        (position + 1), Toast.LENGTH_SHORT).show();
-                displayGivenLocation(scores.get(position).getLocation());
-
+                MyLocation temp = scores.get(position).getLocation();
+                if (temp.getLon() == 0 && temp.getLat() == 0) {
+                    Toast.makeText(context, "Location not available!", Toast.LENGTH_SHORT).show();
+                } else if (isServicesOK()) {
+                    initMap(scores.get(position).getLocation());
+                }
             }
         });
         MyLocation temp = scores.get(position).getLocation();
@@ -67,26 +74,14 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     }
 
     /**
-     * A method to create a map fragment that will show the score location on the map
+     * A method to initialize the map fragment
      */
-    private void displayGivenLocation(MyLocation location) {
-        int available = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(context);
-        if (available == ConnectionResult.SUCCESS) {
-            Log.d("pttt", "isServiceOK: Google Play Services is working");
-        } else if (GoogleApiAvailability.getInstance().isUserResolvableError(available)) {
-            Log.d("pttt", "isServicesOK: an error occured but we can fix it");
-        } else Log.d("pttt", "Cant make map requests");
-
-
-
-        MapFragment dialog = new MapFragment(context, location);
-        Objects.requireNonNull(dialog.getWindow()).requestFeature(Window.FEATURE_NO_TITLE);
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        dialog.show();
-        int width = (int) (context.getResources().getDisplayMetrics().widthPixels * 0.8);
-        int height = (int) (context.getResources().getDisplayMetrics().heightPixels * 0.5);
-        dialog.getWindow().setLayout(width, height);
-        dialog.getWindow().setGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL);
+    private void initMap(MyLocation location) {
+        Log.d(TAG, "initMap: Trying to init map adapter");
+        Intent intent = new Intent(context, MapsActivity.class);
+        intent.putExtra("Lat", location.getLat());
+        intent.putExtra("Lon", location.getLon());
+        context.startActivity(intent);
     }
 
     @Override
@@ -120,5 +115,28 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             location = itemView.findViewById(R.id.row_LBL_location);
             mainLayout = itemView.findViewById(R.id.row_LAY_mainLayout);
         }
+    }
+
+    /**
+     * A method to check if google play services are running fine
+     */
+    public boolean isServicesOK() {
+        Log.d(TAG, "isServicesOK: checking google services version");
+
+        int available = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(context);
+
+        if (available == ConnectionResult.SUCCESS) {
+            //Everything is cool and user can make map requests
+            Log.d(TAG, "isServicesOK: Google play services is working");
+            return true;
+        } else if (GoogleApiAvailability.getInstance().isUserResolvableError(available)) {
+            //An error occurred but we can resolve it
+            Log.d(TAG, "isServicesOK: An error occured but we can fix it");
+            Dialog dialog = GoogleApiAvailability.getInstance().getErrorDialog((Activity) context, available, ERROR_DIALOG_REQUEST);
+            dialog.show();
+        } else {
+            Toast.makeText(context, "You cant make map requests", Toast.LENGTH_SHORT).show();
+        }
+        return false;
     }
 }
