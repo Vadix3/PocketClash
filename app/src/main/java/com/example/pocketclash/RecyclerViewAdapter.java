@@ -24,6 +24,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 
 import java.util.ArrayList;
@@ -63,7 +67,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             public void onClick(View view) {
                 MyLocation temp = scores.get(position).getLocation();
                 if (temp.getLon() == 0 && temp.getLat() == 0) {
-                    Toast.makeText(context, "Location not available!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "Location is off!", Toast.LENGTH_SHORT).show();
                 } else if (isServicesOK()) {
                     initMap(scores.get(position).getLocation());
                 }
@@ -78,10 +82,15 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
      */
     private void initMap(MyLocation location) {
         Log.d(TAG, "initMap: Trying to init map adapter");
-        Intent intent = new Intent(context, MapsActivity.class);
-        intent.putExtra("Lat", location.getLat());
-        intent.putExtra("Lon", location.getLon());
-        context.startActivity(intent);
+        MapsActivity dialog = new MapsActivity(context, location);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.activity_maps);
+        dialog.show();
+        dialog.getWindow().setDimAmount(0.8f);
+        int width = (int) (context.getResources().getDisplayMetrics().widthPixels * 0.9);
+        int height = (int) (context.getResources().getDisplayMetrics().heightPixels * 0.7);
+        dialog.getWindow().setLayout(width, height);
+        dialog.getWindow().setGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL);
     }
 
     @Override

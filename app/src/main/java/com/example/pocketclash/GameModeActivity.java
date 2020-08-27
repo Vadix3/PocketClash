@@ -24,10 +24,12 @@ public class GameModeActivity extends Dialog implements View.OnClickListener {
     private ImageView autoImage;
     private ImageView background;
     private Vibrator vb;
+    private boolean basharMode;
 
-    public GameModeActivity(Context context) {
+    public GameModeActivity(Context context, boolean basharMode) {
         super(context);
         this.mContext = context;
+        this.basharMode = basharMode;
     }
 
     @Override
@@ -62,6 +64,7 @@ public class GameModeActivity extends Dialog implements View.OnClickListener {
                 dismiss();
                 vb.vibrate(5);
                 intent.putExtra("GameType", 0);
+                intent.putExtra("basharMode", basharMode);
                 mContext.startActivity(intent);
                 ((Activity) mContext).finish();
                 break;
@@ -69,6 +72,7 @@ public class GameModeActivity extends Dialog implements View.OnClickListener {
                 dismiss();
                 vb.vibrate(5);
                 intent.putExtra("GameType", 1);
+                intent.putExtra("basharMode", basharMode);
                 mContext.startActivity(intent);
                 ((Activity) mContext).finish();
                 break;
@@ -76,6 +80,7 @@ public class GameModeActivity extends Dialog implements View.OnClickListener {
                 dismiss();
                 vb.vibrate(5);
                 intent.putExtra("GameType", 2);
+                intent.putExtra("basharMode", basharMode);
                 mContext.startActivity(intent);
                 ((Activity) mContext).finish();
                 break;

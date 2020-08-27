@@ -121,6 +121,7 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
 
     private static final String PLAYER2 = "Player2";
     private static final String PLAYER1 = "Player1";
+    private static final String TAG = "pttt";
     private int gameTheme;// In construction
     private int gameMode; // AUTO, VS_AI, SOLO*/
     private int gameOverMode = 0; // MENU, QUIT, SOLO*/
@@ -152,8 +153,9 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
     private ArrayList<Score> top10Scores;
 
     //Booleans
+    private boolean basharMode;
     private boolean isGameOver = false;
-    private boolean isVolumeOn = false;
+    private boolean isVolumeOn = true;
     private boolean top10ArraySaved = false;
     private boolean isHandlerRunning = false;
     private boolean isQuitDialogCalled = false;
@@ -208,9 +210,10 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
     protected void onResume() {
         super.onResume();
         Log.d("pttt", "On resume");
-        if (!isQuitDialogCalled && flipCoinButton.getVisibility() != View.VISIBLE)
+        if (!isQuitDialogCalled && flipCoinButton.getVisibility() != View.VISIBLE) {
             runHandlerIfNotRunning();
-        if (isVolumeOn) {
+        }
+        if (isVolumeOn && !isGameOverDialogCalled && !isQuitDialogCalled) {
             mediaPlayer.start();
         }
     }
@@ -255,6 +258,8 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
         setContentView(R.layout.activity_main);
         mySP = new MySP(this);
         gameMode = getIntent().getIntExtra("GameType", 0);
+        basharMode = getIntent().getBooleanExtra("basharMode", false);
+        Log.d(TAG, "basharMode: " + basharMode);
         initAllSkills();
         initNewGame();
         super.onCreate(savedInstanceState);
@@ -266,6 +271,7 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
     private void initNewGame() {
         isGameOver = false;
         top10ArraySaved = false;
+        isVolumeOn = true;
         initPlayers();
         initViews();
         initListeners();
@@ -279,7 +285,11 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
      * A method to initialize the widgets
      */
     private void initViews() {
-        mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.god_suriya_bashar);
+        if (basharMode) {
+            mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.god_suriya_bashar);
+        } else {
+            mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.ein_kmo_bb);
+        }
         mediaPlayer.setLooping(true);
         mainLayout = findViewById(R.id.main_LAY_mainLayout);
         mainLayout.setClickable(true);
@@ -289,7 +299,7 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
         glideToBackground(player2Stats, R.drawable.health_bar);
         backgroundImage = findViewById(R.id.main_IMG_backGround);
         backgroundImage.setScaleType(ImageView.ScaleType.FIT_XY);
-        Glide.with(backgroundImage).load(R.drawable.my_background_night).into(backgroundImage);
+        Glide.with(backgroundImage).load(getRandomBackground()).into(backgroundImage);
         flipCoinButton = findViewById(R.id.main_IMG_flipcoin);
         volumeButton = findViewById(R.id.main_IMG_volume);
         player1_skill1 = findViewById(R.id.main_BTN_player1_skill1);
@@ -310,16 +320,14 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
 
         player1_name = findViewById(R.id.main_LBL_player1_Stats_name);
         player2_name = findViewById(R.id.main_LBL_player2_Stats_name);
-        switch (gameTheme) { // Currently always BASHAR, future themes will follow
-            case BASHAR:
-                player1_name.setText("Bashar");
-                player2_name.setText("Jihadi");
-                break;
-            default:
-                player1_name.setText("Player 1");
-                player2_name.setText("Player 2");
-        }
 
+        if (basharMode) {
+            player1_name.setText("Bashar Assad");
+            player2_name.setText("Jihadi");
+        } else {
+            player1_name.setText("Benjamin Netanyahu");
+            player2_name.setText("Hassan Rouhani");
+        }
 
         player1_health = findViewById(R.id.main_BAR_Player1_progressBar);
         player2_health = findViewById(R.id.main_BAR_Player2_progressBar);
@@ -336,12 +344,28 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
         player1_picture = findViewById(R.id.main_IMG_player1_picture);
         player2_picture = findViewById(R.id.main_IMG_player2_picture);
         gameTheme = BASHAR;
-        if (gameTheme == BASHAR) {
+        if (basharMode == true) {
             Glide.with(player1_picture).load(R.drawable.bashar2).into(player1_picture);
             Glide.with(player2_picture).load(R.drawable.jihadi_player).into(player2_picture);
         } else {
-            Glide.with(player1_picture).load(R.drawable.player_demo_circle);
-            Glide.with(player2_picture).load(R.drawable.player_demo_circle);
+            Glide.with(player1_picture).load(R.drawable.bb).into(player1_picture);
+            Glide.with(player2_picture).load(R.drawable.rohani).into(player2_picture);
+        }
+    }
+
+    /**
+     * A method to get a random background id
+     */
+    private int getRandomBackground() {
+        switch (randomIntFromInterval(1, 3)) {
+            case 1:
+                return R.drawable.my_background_colorgreen;
+            case 2:
+                return R.drawable.my_background_colorrblueorange;
+            case 3:
+                return R.drawable.my_background_colorredpink;
+            default:
+                return R.drawable.my_background_colorgreen;
         }
     }
 
@@ -529,6 +553,7 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
 
         player1.setSkills(player1Skills);
         player2.setSkills(player2Skills);
+
     }
 
     /**
@@ -919,13 +944,13 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
                     updateTurns(player2); // Player 2 dealt damage
                     player1_health.setProgress(player1_health.getProgress() - damage);
                     player1.setHealth(player1_health.getProgress());
-                    displayToast(player2.getName() + " deals " + damage + " damage!");
+                    displayToast(player2_name.getText() + " deals " + damage + " damage!");
                 } else {
                     // Heal player 1
                     updateTurns(player1);
                     player1_health.setProgress(player1_health.getProgress() + damage);
                     player1.setHealth(player1_health.getProgress());
-                    displayToast(player1.getName() + " heals " + damage + " HP!");
+                    displayToast(player1_name.getText() + " heals " + damage + " HP!");
                 }
                 if (player1_health.getProgress() < 0) {
                     player1_hp.setText("0");
@@ -939,13 +964,13 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
                     updateTurns(player1); // Player 1 dealt damage
                     player2_health.setProgress(player2_health.getProgress() - damage);
                     player2.setHealth(player2_health.getProgress());
-                    displayToast(player1.getName() + " deals " + damage + " damage!");
+                    displayToast(player1_name.getText() + " deals " + damage + " damage!");
                 } else {
 
                     updateTurns(player2);
                     player2_health.setProgress(player2_health.getProgress() + damage);
                     player2.setHealth(player2_health.getProgress());
-                    displayToast(player2.getName() + " heals " + damage + " HP!");
+                    displayToast(player2_name.getText() + " heals " + damage + " HP!");
                 }
                 if (player2_health.getProgress() < 0) {
                     player2_hp.setText("0");
@@ -1004,6 +1029,8 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
      * A method to create and show given dialog fragment
      */
     private void createDialogFragment(final Dialog dialog, final String val) {
+        if (feedBackToast != null)
+            feedBackToast.cancel();
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         dialog.show();
         if (val.equals("exit")) {
@@ -1045,7 +1072,7 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
      * A method to display the game over dialog
      */
     public void onGameOver(Player winner) {
-        gameOverDialog = new GameOverActivity(MainActivity.this, winner, gameMode);
+        gameOverDialog = new GameOverActivity(MainActivity.this, winner, gameMode, basharMode);
         Score temp = new Score(winner.getNumOfTurns());
         if (!top10ArraySaved) {
             getWinnerLocation(winner, temp);

@@ -31,6 +31,7 @@ public class GameOverActivity extends Dialog implements View.OnClickListener {
     private Player winner;
     private int gameMode;
     private CallBackListener listener;
+    private boolean basharMode = false;
 
     private static final int QUIT_GAME = 10;
     private static final int MAIN_MENU = 11;
@@ -41,11 +42,12 @@ public class GameOverActivity extends Dialog implements View.OnClickListener {
      * GameMode 1 = vsAI
      * GameMode 2 = Auto
      */
-    public GameOverActivity(Context context, Player winner, int gameMode) {
+    public GameOverActivity(Context context, Player winner, int gameMode, boolean basharMode) {
         super(context);
         this.mContext = context;
         this.winner = winner;
         this.gameMode = gameMode;
+        this.basharMode = basharMode;
     }
 
     @Override
@@ -78,9 +80,25 @@ public class GameOverActivity extends Dialog implements View.OnClickListener {
         menuButton.setOnClickListener(this);
         headLine = findViewById(R.id.gameOver_LBL_title);
         if (gameMode == 1 && winner.getName().equals("Player2")) { // AI has won
-            headLine.setText("Player 2 has won!");
-        } else {
-            headLine.setText(winner.getName() + " has won in " + winner.getNumOfTurns() + " turns!");
+            if (basharMode) {
+                headLine.setText("Jihadi has won!");
+            } else {
+                headLine.setText("Rohani has won!");
+            }
+        } else { // Not AI game
+            if (basharMode) {
+                if (winner.getName().equals("Player1")) {
+                    headLine.setText("Bashar has won in " + winner.getNumOfTurns() + " turns!");
+                } else {
+                    headLine.setText("Jihadi has won in " + winner.getNumOfTurns() + " turns!");
+                }
+            } else {
+                if (winner.getName().equals("Player2")) {
+                    headLine.setText("Bibi has won in " + winner.getNumOfTurns() + " turns!");
+                } else {
+                    headLine.setText("Rohani has won in " + winner.getNumOfTurns() + " turns!");
+                }
+            }
         }
         background = findViewById(R.id.gameOver_LAY_mainLayout);
         glideToBackground(background, R.drawable.game_over_dialog);

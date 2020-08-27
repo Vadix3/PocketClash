@@ -20,6 +20,7 @@ import android.view.Window;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
@@ -33,13 +34,16 @@ public class WelcomeActivity extends AppCompatActivity {
     /**
      * Views
      */
-    ImageView title;
-    ImageView startButton;
-    ImageView top10Button;
-    ImageView aboutButton;
-    TextView quitText;
-    RelativeLayout relativeLayout;
-    Vibrator vb;
+    private ImageView title;
+    private ImageView startButton;
+    private ImageView top10Button;
+    private ImageView aboutButton;
+    private Toast feedBackToast;
+    private TextView quitText;
+    private RelativeLayout relativeLayout;
+    private Vibrator vb;
+    private int tapCounter = 0;
+    private boolean basharMode = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +63,7 @@ public class WelcomeActivity extends AppCompatActivity {
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                GameModeActivity dialog = new GameModeActivity(WelcomeActivity.this);
+                GameModeActivity dialog = new GameModeActivity(WelcomeActivity.this, basharMode);
                 createDialogFragment(dialog, 0);
                 Objects.requireNonNull(dialog.getWindow()).setDimAmount(0.975f);
             }
@@ -83,6 +87,20 @@ public class WelcomeActivity extends AppCompatActivity {
             public void onClick(View view) {
                 AboutActivity aboutActivity = new AboutActivity(view.getContext());
                 createDialogFragment(aboutActivity, 1);
+            }
+        });
+        title.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                tapCounter++;
+                if (tapCounter == 5) {
+                    displayToast("You have unlocked Bashar mode!");
+                    basharMode = true;
+                } else if (tapCounter > 5) {
+                    displayToast("You already unlocked Bashar mode!");
+                } else {
+                    displayToast(5 - (tapCounter) + " taps to go!");
+                }
             }
         });
     }
@@ -132,5 +150,17 @@ public class WelcomeActivity extends AppCompatActivity {
         }
         dialog.getWindow().setLayout(width, height);
         dialog.getWindow().setGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL);
+    }
+
+    /**
+     * A function to display Toast with given text
+     */
+    private void displayToast(final String message) {
+
+        if (feedBackToast != null)
+            feedBackToast.cancel();
+
+        feedBackToast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT);
+        feedBackToast.show();
     }
 }

@@ -15,7 +15,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
-        android:src="@drawable/ic_baseline_volume_off_24"/>
+        android:src="@drawable/ic_baseline_volume_up_24" />
 
     <LinearLayout
         android:id="@+id/main_LAY_player1_SkillsLayout"
