@@ -741,18 +741,18 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
     private void releasePlayer(String playerName) {
         switch (playerName) {
             case PLAYER1: // Releasing player 1
-                glideToBackground(player1_skill1, R.drawable.skill_button);
-                glideToBackground(player1_skill2, R.drawable.heavy_attack_button);
-                glideToBackground(player1_skill3, R.drawable.heal_button);
+                glideToBackground(player1_skill1, R.drawable.skill_button_weak4);
+                glideToBackground(player1_skill2, R.drawable.skill_button_strong4);
+                glideToBackground(player1_skill3, R.drawable.skill_button_heal4);
 
                 player1_skill1.setClickable(true);
                 player1_skill2.setClickable(true);
                 player1_skill3.setClickable(true);
                 break;
             case PLAYER2: // Releasing player2
-                glideToBackground(player2_skill1, R.drawable.skill_button);
-                glideToBackground(player2_skill2, R.drawable.heavy_attack_button);
-                glideToBackground(player2_skill3, R.drawable.heal_button);
+                glideToBackground(player2_skill1, R.drawable.skill_button_weak4);
+                glideToBackground(player2_skill2, R.drawable.skill_button_strong4);
+                glideToBackground(player2_skill3, R.drawable.skill_button_heal4);
                 player2_skill1.setClickable(true);
                 player2_skill2.setClickable(true);
                 player2_skill3.setClickable(true);
@@ -766,18 +766,18 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
     private void holdPlayer(String playerName) {
         switch (playerName) {
             case PLAYER1: // Holding player 1
-                glideToBackground(player1_skill1, R.drawable.unavailable_skill);
-                glideToBackground(player1_skill2, R.drawable.unavailable_skill);
-                glideToBackground(player1_skill3, R.drawable.unavailable_skill);
+                glideToBackground(player1_skill1, R.drawable.skill_button_unavailable4);
+                glideToBackground(player1_skill2, R.drawable.skill_button_unavailable4);
+                glideToBackground(player1_skill3, R.drawable.skill_button_unavailable4);
 
                 player1_skill1.setClickable(false);
                 player1_skill2.setClickable(false);
                 player1_skill3.setClickable(false);
                 break;
             case PLAYER2:
-                glideToBackground(player2_skill1, R.drawable.unavailable_skill);
-                glideToBackground(player2_skill2, R.drawable.unavailable_skill);
-                glideToBackground(player2_skill3, R.drawable.unavailable_skill);
+                glideToBackground(player2_skill1, R.drawable.skill_button_unavailable4);
+                glideToBackground(player2_skill2, R.drawable.skill_button_unavailable4);
+                glideToBackground(player2_skill3, R.drawable.skill_button_unavailable4);
 
                 player2_skill1.setClickable(false);
                 player2_skill2.setClickable(false);
@@ -797,12 +797,12 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
         player1_skill2.setClickable(false);
         player1_skill3.setClickable(false);
 
-        glideToBackground(player2_skill1, R.drawable.unavailable_skill);
-        glideToBackground(player2_skill2, R.drawable.unavailable_skill);
-        glideToBackground(player2_skill3, R.drawable.unavailable_skill);
-        glideToBackground(player1_skill1, R.drawable.unavailable_skill);
-        glideToBackground(player1_skill2, R.drawable.unavailable_skill);
-        glideToBackground(player1_skill3, R.drawable.unavailable_skill);
+        glideToBackground(player2_skill1, R.drawable.skill_button_unavailable4);
+        glideToBackground(player2_skill2, R.drawable.skill_button_unavailable4);
+        glideToBackground(player2_skill3, R.drawable.skill_button_unavailable4);
+        glideToBackground(player1_skill1, R.drawable.skill_button_unavailable4);
+        glideToBackground(player1_skill2, R.drawable.skill_button_unavailable4);
+        glideToBackground(player1_skill3, R.drawable.skill_button_unavailable4);
 
         if (player1_health.getProgress() <= 0) {
             player1.setHealth(0);

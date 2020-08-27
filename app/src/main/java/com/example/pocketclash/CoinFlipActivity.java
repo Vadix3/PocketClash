@@ -135,6 +135,7 @@ public class CoinFlipActivity extends Dialog {
             if (numOfRotations % 2 == 0) {
                 Glide.with(image2).load(R.drawable.player1_coin2).into(image2);
                 startingPlayer = 1;
+                //TODO: Check for bashar mode here and player 1 = Bashar fix
                 Toast.makeText(activity, "Player 1 starts!", Toast.LENGTH_SHORT).show();
             } else {
                 Glide.with(image1).load(R.drawable.player2_coin2).into(image1);

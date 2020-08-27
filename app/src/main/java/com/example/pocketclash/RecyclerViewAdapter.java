@@ -67,7 +67,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             public void onClick(View view) {
                 MyLocation temp = scores.get(position).getLocation();
                 if (temp.getLon() == 0 && temp.getLat() == 0) {
-                    Toast.makeText(context, "Location is off!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "Location is unavailable!", Toast.LENGTH_SHORT).show();
                 } else if (isServicesOK()) {
                     initMap(scores.get(position).getLocation());
                 }

@@ -94,9 +94,9 @@ public class GameOverActivity extends Dialog implements View.OnClickListener {
                 }
             } else {
                 if (winner.getName().equals("Player2")) {
-                    headLine.setText("Bibi has won in " + winner.getNumOfTurns() + " turns!");
-                } else {
                     headLine.setText("Rohani has won in " + winner.getNumOfTurns() + " turns!");
+                } else {
+                    headLine.setText("Bibi has won in " + winner.getNumOfTurns() + " turns!");
                 }
             }
         }
