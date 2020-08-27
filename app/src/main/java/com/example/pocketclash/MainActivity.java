@@ -491,7 +491,6 @@ public class MainActivity extends AppCompatActivity implements CallBackListener 
 
     /**
      * A method to initialize the total skills array (Database of skills)
-     * TODO: add inflatable skill details? display points?
      * Name,Damage,Points,Type
      */
     private void initAllSkills() {
