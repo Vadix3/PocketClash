@@ -16,7 +16,7 @@ Including:
 
 # Theme 1:
 
-<img src="https://github.com/Vadix3/PocketClash/blob/master/bbfight.jpeg" width="400" />
+<img src="https://github.com/Vadix3/PocketClash/blob/master/theme3.jpeg" width="400" />
 
 # Theme 2:
 
